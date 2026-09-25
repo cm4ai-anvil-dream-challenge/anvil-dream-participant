@@ -7,7 +7,6 @@ the command that runs their model.
 
 from __future__ import annotations
 
-import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -18,11 +17,8 @@ import WDL
 
 PARTICIPANT_TASK_NAME = "Predict"
 PREDICTION_INPUT_STRUCT = "PredictionInput"
-WEIGHTS_INPUT = f"{PARTICIPANT_TASK_NAME}.weights"
 _DIGEST_IMAGE = re.compile(r"^[^\s/@]+(?:/[^\s/@]+)+@sha256:[0-9a-fA-F]{64}$")
 _PARTICIPANT_RUNTIME_KEYS = frozenset({"docker"})
-PARTICIPANT_GPU_TYPE = "nvidia-l4"
-DEFAULT_PREEMPTIBLE_ATTEMPTS = 0
 
 
 class WorkflowContractError(ValueError):
@@ -33,12 +29,6 @@ class WorkflowContractError(ValueError):
 class ParticipantWorkflow:
     name: str
     tasks: tuple[Any, ...]
-
-
-@dataclass(frozen=True)
-class InputFile:
-    uri: str
-    path: Path | None = None
 
 
 def is_literal(expr: Any) -> bool:
@@ -242,54 +232,6 @@ def parse_participant_workflow(
         _validate_no_postinput_declarations(task)
         _validate_participant_command(task)
     return ParticipantWorkflow(str(task.name), (task,))
-
-
-def _read_inputs(inputs: dict[str, Any] | str | Path) -> tuple[dict[str, Any], Path | None]:
-    if isinstance(inputs, dict):
-        return inputs, None
-    path = Path(inputs).expanduser().resolve()
-    try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as error:
-        raise WorkflowContractError(f"participant inputs are not valid JSON: {error}") from error
-    if not isinstance(value, dict):
-        raise WorkflowContractError("participant inputs must be a JSON object")
-    return value, path.parent
-
-
-def normalize_participant_inputs(
-    workflow: ParticipantWorkflow | str | Path,
-    inputs: dict[str, Any] | str | Path,
-    *,
-    require_files_exist: bool = False,
-) -> tuple[dict[str, Any], tuple[InputFile, ...]]:
-    """Normalize the participant-owned weights input.
-
-    Image lanes and execution settings are organizer-owned. Model-specific
-    configuration belongs inside the weights or participant container.
-    """
-    if not isinstance(workflow, ParticipantWorkflow):
-        parse_participant_workflow(workflow)
-    values, base_dir = _read_inputs(inputs)
-    unknown = set(values) - {WEIGHTS_INPUT}
-    if unknown:
-        raise WorkflowContractError(
-            f"participant inputs may contain only {WEIGHTS_INPUT}; unknown input(s): "
-            + ", ".join(sorted(unknown))
-        )
-    if WEIGHTS_INPUT not in values:
-        raise WorkflowContractError(f"missing required participant input: {WEIGHTS_INPUT}")
-    value = values[WEIGHTS_INPUT]
-    if not isinstance(value, str) or not value:
-        raise WorkflowContractError(f"{WEIGHTS_INPUT} must be a file URI or path")
-    path = None
-    if not value.startswith("gs://"):
-        path = Path(value).expanduser()
-        if base_dir is not None and not path.is_absolute():
-            path = (base_dir / path).resolve()
-    if require_files_exist and path is not None and not path.is_file():
-        raise WorkflowContractError(f"weights file not found: {path}")
-    return {WEIGHTS_INPUT: value}, (InputFile(value, path),)
 
 
 def validate_workflow_images(workflow: ParticipantWorkflow) -> tuple[str, ...]:
