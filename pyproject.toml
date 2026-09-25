@@ -13,8 +13,11 @@ dependencies = [
     "google-cloud-storage>=3.1,<4",
     "miniwdl>=1.13,<2",
     "requests>=2.32,<3",
-    "synapseclient>=4.9,<5",
+    "synapseclient>=4.12,<5",
 ]
+
+[project.scripts]
+dream = "dream_participant.cli:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

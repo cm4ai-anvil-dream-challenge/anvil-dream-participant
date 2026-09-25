@@ -1,12 +1,18 @@
 # CM4AI AnVIL DREAM participant
 
-`cm4ai-anvil-dream-participant` provides public modules for participant WDL validation,
-submission bundles, GCS staging, status records, container image checks, and progress logging.
+`cm4ai-anvil-dream-participant` provides the participant-only `dream` command and public
+modules for WDL validation, Synapse readiness and private submission, Terra identity, bundles,
+GCS staging, status records, container image checks, and progress logging. It does not include
+organizer commands or code.
 
 Install the package from this directory:
 
 ```sh
 python -m pip install .
+dream --help
+dream participant submit --help
+dream participant submit-anvil --help
+dream participant submission-status --help
 ```
 
 For example, validate a participant WDL with:
