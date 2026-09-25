@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cm4ai-anvil-dream-participant"
+version = "0.1.0"
+description = "Public participant submission contracts and bundle tools"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "google-cloud-storage>=3.1,<4",
+    "miniwdl>=1.13,<2",
+    "requests>=2.32,<3",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["dream_participant*"]
