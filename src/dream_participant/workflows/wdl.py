@@ -129,13 +129,16 @@ def _validate_prediction_input_struct(document: Any) -> None:
         )
     struct = document.struct_typedefs[PREDICTION_INPUT_STRUCT]
     expected = {
-        "image": WDL.Type.File,
-        "target_protein": WDL.Type.String,
-        "cell_line": WDL.Type.String,
+        "prediction_id": WDL.Type.String,
+        "microtubules_image": WDL.Type.File,
+        "nucleus_image": WDL.Type.File,
+        "er_image": WDL.Type.File,
+        "fasta_file": WDL.Type.File,
     }
     if set(struct.members) != set(expected):
         raise WorkflowContractError(
-            "PredictionInput must contain exactly image, target_protein, and cell_line"
+            "PredictionInput must contain exactly prediction_id, microtubules_image, "
+            "nucleus_image, er_image, and fasta_file"
         )
     for name, expected_type in expected.items():
         member = struct.members[name]
