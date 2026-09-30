@@ -286,10 +286,13 @@ def _download_object(
             version.source.name,
             generation=version.generation,
         )
-        blob.download_to_filename(
-            str(target),
-            if_generation_match=version.generation,
-        )
+        from tqdm import tqdm
+
+        with target.open("wb") as output:
+            with tqdm.wrapattr(output, "write", total=version.size_bytes,
+                               desc=f"Downloading {target.name}", unit="B",
+                               unit_scale=True, unit_divisor=1024) as tracked:
+                blob.download_to_file(tracked, if_generation_match=version.generation)
         actual_size = target.stat().st_size
         if actual_size != version.size_bytes:
             raise GcsStagingError(

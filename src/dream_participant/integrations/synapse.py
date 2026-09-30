@@ -120,14 +120,19 @@ class SubmissionBundleFingerprint:
 
     @classmethod
     def from_path(cls, path: str | Path) -> SubmissionBundleFingerprint:
+        from tqdm import tqdm
+
         md5 = hashlib.md5(usedforsecurity=False)
         sha256 = hashlib.sha256()
         size_bytes = 0
         with Path(path).open("rb") as bundle:
-            while chunk := bundle.read(1024 * 1024):
-                md5.update(chunk)
-                sha256.update(chunk)
-                size_bytes += len(chunk)
+            with tqdm.wrapattr(bundle, "read", total=Path(path).stat().st_size,
+                               desc="Verifying submission bundle", unit="B",
+                               unit_scale=True, unit_divisor=1024) as tracked:
+                while chunk := tracked.read(1024 * 1024):
+                    md5.update(chunk)
+                    sha256.update(chunk)
+                    size_bytes += len(chunk)
         return cls(md5.hexdigest(), sha256.hexdigest(), size_bytes)
 
 
@@ -516,13 +521,18 @@ class ParticipantSynapseGateway:
                 reused = True
 
         if entity is None:
-            entity = self.client.store(
-                File(
-                    path=path,
-                    parent=parent_id,
-                    annotations={BUNDLE_SHA256_ANNOTATION: fingerprint.sha256},
+            previous_silent = getattr(self.client, "silent", False)
+            self.client.silent = False
+            try:
+                entity = self.client.store(
+                    File(
+                        path=path,
+                        parent=parent_id,
+                        annotations={BUNDLE_SHA256_ANNOTATION: fingerprint.sha256},
+                    )
                 )
-            )
+            finally:
+                self.client.silent = previous_silent
             try:
                 self.assert_private_to_submitter(str(entity.id))
             except SubmissionPrivacyError:

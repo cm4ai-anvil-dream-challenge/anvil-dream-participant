@@ -4,8 +4,25 @@ from __future__ import annotations
 
 import sys
 import threading
+from collections.abc import Callable, Iterator
 from datetime import datetime
 from pathlib import Path
+from contextlib import contextmanager
+
+from tqdm import tqdm
+
+
+@contextmanager
+def transfer_progress(description: str) -> Iterator[Callable[[int, int], None]]:
+    """Track cumulative bytes, including a restart from zero after a retry."""
+    with tqdm(total=None, desc=description, unit="B", unit_scale=True,
+              unit_divisor=1024, mininterval=0.2) as bar:
+        def update(completed: int, total: int) -> None:
+            bar.total = total
+            if completed < bar.n:
+                bar.reset(total=total)
+            bar.update(completed - bar.n)
+        yield update
 
 
 def _timestamp(*, short: bool = False) -> str:

@@ -358,11 +358,16 @@ class SubmissionBundle:
         return cls(manifest, tuple((path, sources[path]) for path in ordered_paths))
 
     @staticmethod
-    def archive_sha256(path: Path) -> str:
+    def archive_sha256(path: Path, *, progress: bool = False) -> str:
+        from tqdm import tqdm
+
         digest = hashlib.sha256()
         try:
             with Path(path).open("rb") as handle:
-                _copy_chunks(handle, digest=digest)
+                with tqdm.wrapattr(handle, "read", total=Path(path).stat().st_size,
+                                   desc="Verifying submission TAR digest", disable=not progress,
+                                   unit="B", unit_scale=True, unit_divisor=1024) as tracked:
+                    _copy_chunks(tracked, digest=digest)
         except OSError as error:
             raise BundleValidationError(f"cannot read bundle archive: {path}") from error
         return digest.hexdigest()
