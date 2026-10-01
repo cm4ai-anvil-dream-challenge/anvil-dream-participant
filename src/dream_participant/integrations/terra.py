@@ -41,7 +41,7 @@ class AnvilIdentity:
         object.__setattr__(self, "subject_id", subject_id)
 
 
-def _google_adc_error(error: Exception) -> TerraApiError:
+def _google_adc_error() -> TerraApiError:
     return TerraApiError(
         "Google Application Default Credentials are missing or invalid. "
         "Run `gcloud auth application-default login`, then verify with "
@@ -50,7 +50,7 @@ def _google_adc_error(error: Exception) -> TerraApiError:
     )
 
 
-def _google_adc_transport_error(error: Exception) -> TerraApiError:
+def _google_adc_transport_error() -> TerraApiError:
     return TerraApiError(
         "Could not contact Google's authentication service to refresh Application "
         "Default Credentials. Check the network connection and try again. If it "
@@ -68,7 +68,7 @@ class ParticipantTerraClient:
                 scopes=["https://www.googleapis.com/auth/cloud-platform"]
             )
         except DefaultCredentialsError as error:
-            raise _google_adc_error(error) from error
+            raise _google_adc_error() from error
         self.session = requests.Session()
 
     def _headers(self) -> dict[str, str]:
@@ -78,9 +78,9 @@ class ParticipantTerraClient:
             try:
                 self.credentials.refresh(Request())
             except TransportError as error:
-                raise _google_adc_transport_error(error) from error
+                raise _google_adc_transport_error() from error
             except (DefaultCredentialsError, RefreshError) as error:
-                raise _google_adc_error(error) from error
+                raise _google_adc_error() from error
         return {
             "Authorization": f"Bearer {self.credentials.token}",
             "Accept": "application/json",

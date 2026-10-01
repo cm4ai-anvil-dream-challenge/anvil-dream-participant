@@ -156,13 +156,7 @@ def _get_json(
     expected_digest: str,
     description: str,
 ) -> dict[str, Any]:
-    response = session.get(
-        url,
-        headers=headers,
-        timeout=timeout,
-        allow_redirects=True,
-        auth=(),
-    )
+    response = _manifest_request(session, url, headers, timeout)
     try:
         if response.status_code != 200:
             raise ContainerRegistryError(

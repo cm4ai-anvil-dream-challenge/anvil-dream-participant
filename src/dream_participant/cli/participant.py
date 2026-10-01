@@ -47,10 +47,6 @@ from dream_participant.integrations.container_registry import (
 from dream_participant.progress import close_progress, progress
 
 
-def _progress(message: str) -> None:
-    progress(message)
-
-
 def _evaluation_id(value: str) -> str:
     if not value.isdecimal() or int(value) <= 0:
         raise argparse.ArgumentTypeError("evaluation ID must be a positive number")
@@ -196,12 +192,12 @@ def _submit_bundle(
         if len(bundle.manifest.canonical_json()) > DEFAULT_BUNDLE_LIMITS.max_manifest_bytes:
             raise BundleValidationError("submission manifest exceeds the configured size limit")
         for image in bundle.manifest.container_images:
-            _progress(f"Checking anonymous access and linux/amd64 support for {image}")
+            progress(f"Checking anonymous access and linux/amd64 support for {image}")
             verify_public_container_image(image)
     except (BundleValidationError, ContainerRegistryError, WorkflowContractError) as error:
         raise SystemExit(f"submission validation failed: {error}") from error
     submission_name = args.name or "participant-prediction"
-    _progress("Submitting the private deterministic bundle to Synapse")
+    progress("Submitting the private deterministic bundle to Synapse")
     with tempfile.TemporaryDirectory(prefix="dream-submission-bundle-") as directory:
         archive = Path(directory) / "submission.tar"
         bundle.write_archive(archive)
@@ -209,7 +205,7 @@ def _submit_bundle(
             result = synapse.upload_and_submit(str(archive), parent_id, submission_name, args.team)
         except (SubmissionPrivacyError, SynapseError) as error:
             raise SystemExit(f"participant submission failed: {error}") from error
-    _progress(
+    progress(
         "Reused the existing private submission TAR"
         if result.reused
         else "Uploaded a new private submission TAR"
@@ -242,7 +238,7 @@ def _submit_anvil_bundle(config: ParticipantConfig, args: argparse.Namespace) ->
 
     terra = ParticipantTerraClient(config.terra)
     identity = terra.authenticated_anvil_identity_from_sam()
-    _progress("Staging generation-pinned GCS submission files")
+    progress("Staging generation-pinned GCS submission files")
     with tempfile.TemporaryDirectory(prefix="dream-anvil-submission-sources-") as directory:
         try:
             staged = stage_gcs_submission_files(

@@ -22,7 +22,6 @@ from ..workflows.wdl import (
 )
 
 SUBMISSION_BUNDLE_SCHEMA_VERSION = 1
-MANIFEST_SCHEMA_VERSION = SUBMISSION_BUNDLE_SCHEMA_VERSION
 SUBMISSION_BUNDLE_KIND = "participant-prediction-bundle"
 ARCHIVE_MANIFEST = "manifest.json"
 ARCHIVE_WDL = "submission/workflow.wdl"
