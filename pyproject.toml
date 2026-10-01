@@ -21,8 +21,13 @@ dependencies = [
 dream = "dream_participant.cli:main"
 
 [tool.setuptools]
-package-dir = {"" = "src"}
+packages = [
+    "dream_participant",
+    "dream_participant.cli",
+    "dream_participant.integrations",
+    "dream_participant.submissions",
+    "dream_participant.workflows",
+]
 
-[tool.setuptools.packages.find]
-where = ["src"]
-include = ["dream_participant*"]
+[tool.setuptools.package-dir]
+dream_participant = "."
