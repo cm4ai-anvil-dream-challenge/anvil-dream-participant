@@ -49,6 +49,10 @@ from dream_participant.workflows.wdl import parse_participant_workflow
 workflow = parse_participant_workflow("participant.wdl")
 ```
 
+The participant CLI uses this miniwdl-based contract validation when you submit. Java is not
+required. For an optional independent check with Cromwell WOMtool, see the
+[participant quickstart](../docs/participant-quickstart.md#optional-cromwell-wdl-check).
+
 ## Run the benchmark
 
 The standalone participant package includes the exact benchmark implementation used by the
