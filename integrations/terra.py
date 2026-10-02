@@ -87,15 +87,28 @@ class ParticipantTerraClient:
         }
 
     def _request(self, method: str, path: str, **kwargs: Any) -> Any:
+        return self._request_to(
+            method, path, base_url=self.config.sam_url, service="Sam", **kwargs
+        )
+
+    def _request_to(
+        self, method: str, path: str, *, base_url: str, service: str, **kwargs: Any
+    ) -> Any:
         response = self.session.request(
             method,
-            f"{self.config.sam_url}{path}",
+            f"{base_url}{path}",
             headers=self._headers(),
             timeout=90,
             **kwargs,
         )
         if not response.ok:
             if response.status_code == 401:
+                if service != "Sam":
+                    raise TerraApiError(
+                        f"{service} rejected the Google Application Default Credentials "
+                        f"with HTTP 401 while calling {method} {path}.",
+                        status_code=401,
+                    )
                 raise TerraApiError(
                     "Terra Sam rejected the Google Application Default Credentials "
                     f"with HTTP 401 while calling {method} {path}. ADC exists, but "
@@ -108,7 +121,7 @@ class ParticipantTerraClient:
                 )
             detail = response.text[:2000]
             raise TerraApiError(
-                f"Sam {method} {path} returned {response.status_code}: {detail}",
+                f"{service} {method} {path} returned {response.status_code}: {detail}",
                 status_code=response.status_code,
             )
         if response.status_code == 204 or not response.content:
