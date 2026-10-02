@@ -221,8 +221,6 @@ class SubmissionBundleManifest:
 
     @classmethod
     def from_dict(cls, value: object) -> "SubmissionBundleManifest":
-        if isinstance(value, dict):
-            value = {"submission_name": None, "submission_team": None, **value}
         raw = _strict_object(
             value,
             {

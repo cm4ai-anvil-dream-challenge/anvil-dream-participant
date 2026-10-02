@@ -68,7 +68,6 @@ class ParticipantSynapseConfig:
 
 @dataclass(frozen=True)
 class ParticipantTerraConfig:
-    rawls_url: str
     sam_url: str = "https://sam.dsde-prod.broadinstitute.org"
 
 
@@ -80,7 +79,6 @@ class ParticipantConfig:
 
 PARTICIPANT_QUEUE_NAME = "CM4AI AnVIL DREAM Challenge Evaluation"
 PARTICIPANT_EVALUATION_ID = "9620030"
-PARTICIPANT_RAWLS_URL = "https://rawls.dsde-prod.broadinstitute.org"
 def participant_config_for_evaluation(
     evaluation_id: str = PARTICIPANT_EVALUATION_ID,
 ) -> ParticipantConfig:
@@ -92,5 +90,5 @@ def participant_config_for_evaluation(
     )
     return ParticipantConfig(
         synapse=ParticipantSynapseConfig(queue_name=queue_name, evaluation_id=evaluation_id),
-        terra=ParticipantTerraConfig(rawls_url=PARTICIPANT_RAWLS_URL),
+        terra=ParticipantTerraConfig(),
     )

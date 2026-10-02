@@ -13,7 +13,6 @@ from google.auth.transport.requests import Request
 
 
 class _TerraApiConfig(Protocol):
-    rawls_url: str
     sam_url: str
 
 
@@ -87,12 +86,10 @@ class ParticipantTerraClient:
             "Content-Type": "application/json",
         }
 
-    def _request(
-        self, method: str, path: str, *, base_url: str | None = None, **kwargs: Any
-    ) -> Any:
+    def _request(self, method: str, path: str, **kwargs: Any) -> Any:
         response = self.session.request(
             method,
-            f"{base_url or self.config.rawls_url}{path}",
+            f"{self.config.sam_url}{path}",
             headers=self._headers(),
             timeout=90,
             **kwargs,
@@ -100,11 +97,10 @@ class ParticipantTerraClient:
         if not response.ok:
             if response.status_code == 401:
                 raise TerraApiError(
-                    "Terra Rawls rejected the Google Application Default Credentials "
+                    "Terra Sam rejected the Google Application Default Credentials "
                     f"with HTTP 401 while calling {method} {path}. ADC exists, but "
                     "Terra did not accept that identity. Sign into app.terra.bio once "
-                    "with the same Google account, accept any profile/terms prompts, "
-                    "and confirm that account can open the configured workspace. Then "
+                    "with the same Google account and complete registration or terms prompts. Then "
                     "reset ADC with `gcloud auth application-default revoke` followed "
                     "by `gcloud auth application-default login`. This authentication "
                     "failure is unrelated to the directory from which the script runs.",
@@ -112,7 +108,7 @@ class ParticipantTerraClient:
                 )
             detail = response.text[:2000]
             raise TerraApiError(
-                f"Rawls {method} {path} returned {response.status_code}: {detail}",
+                f"Sam {method} {path} returned {response.status_code}: {detail}",
                 status_code=response.status_code,
             )
         if response.status_code == 204 or not response.content:
@@ -121,28 +117,6 @@ class ParticipantTerraClient:
             return response.json()
         except requests.exceptions.JSONDecodeError:
             return response.text
-
-    def authenticated_google_email(self) -> str:
-        """Return the email asserted by the same OAuth token used for Rawls."""
-        response = self.session.get(
-            "https://openidconnect.googleapis.com/v1/userinfo",
-            headers=self._headers(),
-            timeout=30,
-        )
-        if not response.ok:
-            raise TerraApiError(
-                "Could not verify the authenticated Google account email. Refresh Google "
-                "Application Default Credentials with `gcloud auth application-default login`.",
-                status_code=response.status_code,
-            )
-        try:
-            payload = response.json()
-        except requests.exceptions.JSONDecodeError as error:
-            raise TerraApiError("Google identity response was not valid JSON") from error
-        email = str(payload.get("email") or "").strip().casefold()
-        if not email or payload.get("email_verified") is not True:
-            raise TerraApiError("Google identity response did not contain a verified email")
-        return email
 
     def authenticated_anvil_identity(self, claimed_email: str) -> AnvilIdentity:
         """Verify the claimed email, OIDC subject, and Terra account registration."""
@@ -186,7 +160,6 @@ class ParticipantTerraClient:
             registration = self._request(
                 "GET",
                 "/register/user/v2/self/info",
-                base_url=self.config.sam_url,
             )
         except TerraApiError as error:
             if error.status_code == 401:

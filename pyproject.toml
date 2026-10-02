@@ -17,12 +17,16 @@ dependencies = [
     "tqdm>=4.66,<5",
 ]
 
+[project.urls]
+Repository = "https://github.com/cm4ai-anvil-dream-challenge/cm4ai-anvil-dream-tools"
+
 [project.scripts]
 dream = "dream_participant.cli:main"
 
 [tool.setuptools]
 packages = [
     "dream_participant",
+    "dream_participant.benchmarking",
     "dream_participant.cli",
     "dream_participant.integrations",
     "dream_participant.submissions",
@@ -31,3 +35,6 @@ packages = [
 
 [tool.setuptools.package-dir]
 dream_participant = "."
+
+[tool.setuptools.package-data]
+"dream_participant.benchmarking" = ["README.md"]
