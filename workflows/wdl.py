@@ -135,10 +135,10 @@ def _validate_prediction_input_struct(document: Any) -> None:
         "er_image": WDL.Type.File,
         "fasta_file": WDL.Type.File,
     }
-    if set(struct.members) != set(expected):
+    if set(struct.members) not in (set(expected), set(expected) | {"mask_image"}):
         raise WorkflowContractError(
             "PredictionInput must contain exactly prediction_id, microtubules_image, "
-            "nucleus_image, er_image, and fasta_file"
+            "nucleus_image, er_image, and fasta_file, with optional File? mask_image"
         )
     for name, expected_type in expected.items():
         member = struct.members[name]
@@ -146,6 +146,9 @@ def _validate_prediction_input_struct(document: Any) -> None:
             raise WorkflowContractError(
                 f"PredictionInput.{name} must be a non-optional {expected_type.__name__}"
             )
+    mask = struct.members.get("mask_image")
+    if mask is not None and (not isinstance(mask, WDL.Type.File) or not mask.optional):
+        raise WorkflowContractError("PredictionInput.mask_image must be an optional File")
 
 
 def parse_participant_workflow(
