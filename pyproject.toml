@@ -1,12 +1,21 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "cm4ai-anvil-dream-participant"
+name = "anvil-dream-participant"
 version = "0.1.0"
-description = "Public participant submission contracts and bundle tools"
+description = "AnVIL DREAM participant CLI, submission tools, and benchmark"
 readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
 requires-python = ">=3.12"
 dependencies = [
     "google-auth>=2.40,<3",
@@ -18,6 +27,7 @@ dependencies = [
 ]
 
 [project.urls]
+Documentation = "https://www.synapse.org/Synapse:syn74338981/wiki/643841"
 Repository = "https://github.com/cm4ai-anvil-dream-challenge/cm4ai-anvil-dream-tools"
 
 [project.optional-dependencies]

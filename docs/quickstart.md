@@ -124,27 +124,22 @@ See the [container guide](container-images.md).
 
 ## 4. Install the participant CLI
 
-Use Python 3.12 or newer. Clone the current tools source and install only its
-participant package. These commands work from any directory:
+Use Python 3.12 or newer. Install the participant release from PyPI in its own
+virtual environment. These commands work from any directory:
 
 ```sh
 python3.12 --version
-git clone --branch feat/real-data-workflow-performance \
-  https://github.com/cm4ai-anvil-dream-challenge/cm4ai-anvil-dream-tools.git \
-  "$HOME/cm4ai-anvil-dream-tools"
 python3.12 -m venv "$HOME/dream-participant-venv"
 . "$HOME/dream-participant-venv/bin/activate"
-PIP_USER=false python -m pip install -e "$HOME/cm4ai-anvil-dream-tools/participant"
+PIP_USER=false python -m pip install anvil-dream-participant==0.1.0
 dream participant --help
 dream participant submit --help
 dream participant submit-anvil --help
 ```
 
-This branch contains current PNG and optional-mask support. If the checkout already
-exists, update it rather than cloning over it. If GitHub reports **Repository not
-found** or a source link returns 404, ask organizers for repository access or a
-participant release artifact. The repository was not accessible anonymously when
-checked. Do not assume a PyPI release is available.
+The release includes PNG and optional-mask support. Repository access is not
+required for installation. See the [participant CLI guide](../README.md) for
+installing a source checkout when developing the package.
 
 In AnVIL, use the RStudio Bioconductor VM's **Tools > Terminal > New Terminal**,
 not the R console. `PIP_USER=false` prevents pip from forcing a user-site install.

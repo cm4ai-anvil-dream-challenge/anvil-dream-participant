@@ -1,10 +1,13 @@
-# CM4AI AnVIL DREAM participant
+# AnVIL DREAM participant
 
-`cm4ai-anvil-dream-participant` is a standalone Python distribution for submitting
+`anvil-dream-participant` is a standalone Python distribution for submitting
 participant-authored WDL workflows. It installs the `dream` command and the public
 `dream_participant` modules, including the runnable benchmark implementation. It does not
 include, import, or install the DREAM organizer package, and it does not read runtime assets
 from the parent repository.
+
+[Online participant documentation](https://www.synapse.org/Synapse:syn74338981/wiki/643841)
+is available without GitHub repository access.
 
 ## Participant documentation
 
@@ -36,12 +39,12 @@ and runnable example assets and leaves development tests out.
 
 ## Install a published release
 
-After the package is published to PyPI, install it in Python 3.12 or newer:
+Install the participant package in Python 3.12 or newer:
 
 ```sh
 python -m venv .venv
 . .venv/bin/activate
-python -m pip install cm4ai-anvil-dream-participant
+python -m pip install anvil-dream-participant
 dream participant --help
 dream participant submit --help
 dream participant submit-anvil --help
@@ -54,7 +57,7 @@ reporting. It does not need the organizer project to install or run.
 
 ## Install from this source checkout
 
-To work on the participant package before a PyPI release, run these commands from this
+To develop the participant package from a source checkout, run these commands from this
 directory:
 
 ```sh
@@ -99,7 +102,7 @@ formula, outputs, and current limits.
 Run it locally with an already merged `image-results.jsonl` file:
 
 ```sh
-python -m pip install cm4ai-anvil-dream-participant
+python -m pip install anvil-dream-participant
 python -m dream_participant.benchmarking.evaluation \
   --image-results image-results.jsonl \
   --comparison-report comparison-report.json \

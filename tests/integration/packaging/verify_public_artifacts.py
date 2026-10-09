@@ -50,6 +50,7 @@ def _sdist_path_is_public(name: str) -> bool:
     if len(parts) == 1:
         return parts[0] in {
             "PKG-INFO",
+            "LICENSE",
             "README.md",
             "pyproject.toml",
             "setup.cfg",
@@ -131,6 +132,9 @@ def verify_wheel(path: str) -> tuple[int, list[str]]:
 
         metadata_name = next(name for name in names if name.endswith(".dist-info/METADATA"))
         metadata = archive.read(metadata_name).decode("utf-8")
+        assert "Name: anvil-dream-participant\n" in metadata
+        assert "License-Expression: Apache-2.0\n" in metadata
+        assert any(name.endswith(".dist-info/licenses/LICENSE") for name in names)
         dependencies = {"google-auth", "synapseclient"}
         missing = {
             dependency
@@ -159,6 +163,7 @@ def verify_sdist(path: str) -> tuple[int, list[str]]:
     with tarfile.open(path, "r:gz") as archive:
         names = archive.getnames()
         relative_names = {"/".join(PurePosixPath(name).parts[1:]) for name in names}
+        assert "LICENSE" in relative_names, "participant sdist omits its license"
         missing_guides = PARTICIPANT_GUIDES - relative_names
         assert not missing_guides, f"participant sdist omits guides: {sorted(missing_guides)}"
         unexpected_guides = {name for name in relative_names if name.endswith(".md")} - PARTICIPANT_GUIDES

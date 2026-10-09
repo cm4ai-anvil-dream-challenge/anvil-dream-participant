@@ -35,7 +35,7 @@ def main(wdl_path: Path) -> None:
         raise AssertionError("the installed participant environment includes organizer code")
     entry_points = {
         entry_point.name: entry_point.value
-        for entry_point in distribution("cm4ai-anvil-dream-participant").entry_points
+        for entry_point in distribution("anvil-dream-participant").entry_points
         if entry_point.group == "console_scripts"
     }
     if entry_points != {"dream": "dream_participant.cli:main"}:
