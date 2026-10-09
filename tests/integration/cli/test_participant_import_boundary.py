@@ -67,7 +67,7 @@ import sys
 from dream_participant.cli import main
 
 try:
-    main(["participant", "submit", "--help"])
+    main(["submit", "--help"])
 except SystemExit as error:
     if error.code not in (None, 0):
         raise
@@ -99,7 +99,7 @@ if loaded:
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("usage: dream participant submit", result.stdout)
+        self.assertIn("usage: anvil-dream-participant submit", result.stdout)
 
 
 if __name__ == "__main__":

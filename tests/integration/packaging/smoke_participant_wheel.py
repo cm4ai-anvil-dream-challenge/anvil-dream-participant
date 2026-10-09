@@ -38,7 +38,7 @@ def main(wdl_path: Path) -> None:
         for entry_point in distribution("anvil-dream-participant").entry_points
         if entry_point.group == "console_scripts"
     }
-    if entry_points != {"dream": "dream_participant.cli:main"}:
+    if entry_points != {"anvil-dream-participant": "dream_participant.cli:main"}:
         raise AssertionError(f"participant wheel exposes unexpected commands: {entry_points}")
     if importlib.util.find_spec("dream_participant.benchmarking.tasks") is not None:
         raise AssertionError("participant wheel includes organizer grading task commands")

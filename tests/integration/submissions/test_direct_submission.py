@@ -66,7 +66,7 @@ class DirectSubmissionTests(unittest.TestCase):
         self.assertNotIn("organizer_synapse_user_id", ParticipantSynapseConfig.__dataclass_fields__)
 
     def test_parser_removes_registration_and_workspace_arguments(self) -> None:
-        parser = build_parser("dream participant")
+        parser = build_parser("anvil-dream-participant")
         with self.assertRaises(SystemExit):
             parser.parse_args(["register"])
         args = parser.parse_args(

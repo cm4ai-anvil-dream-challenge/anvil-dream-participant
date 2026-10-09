@@ -229,7 +229,6 @@ class SynapseReadinessTests(unittest.TestCase):
             self.assertEqual(
                 main(
                     [
-                        "participant",
                         "submit-anvil",
                         "--wdl",
                         "gs://source-bucket/workflow.wdl",
@@ -264,7 +263,6 @@ class SynapseReadinessTests(unittest.TestCase):
         for selected_id, evaluation_id, queue_name in routes:
             with self.subTest(evaluation_id=evaluation_id):
                 arguments = [
-                    "participant",
                     "submit",
                     "--wdl",
                     "workflow.wdl",
@@ -307,7 +305,6 @@ class SynapseReadinessTests(unittest.TestCase):
         ):
             main(
                 [
-                    "participant",
                     "--config",
                     "participant.toml",
                     "submit",
@@ -335,7 +332,6 @@ class SynapseReadinessTests(unittest.TestCase):
                 self.assertEqual(
                     main(
                         [
-                            "participant",
                             "submit",
                             "--wdl",
                             "workflow.wdl",

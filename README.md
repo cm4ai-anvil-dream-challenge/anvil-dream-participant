@@ -1,7 +1,7 @@
 # AnVIL DREAM participant
 
 `anvil-dream-participant` is a standalone Python distribution for submitting
-participant-authored WDL workflows. It installs the `dream` command and the public
+participant-authored WDL workflows. It installs the `anvil-dream-participant` command and the public
 `dream_participant` modules, including the runnable benchmark implementation. It does not
 include, import, or install the DREAM organizer package, and it does not read runtime assets
 from the parent repository.
@@ -45,10 +45,10 @@ Install the participant package in Python 3.12 or newer:
 python -m venv .venv
 . .venv/bin/activate
 python -m pip install anvil-dream-participant
-dream participant --help
-dream participant submit --help
-dream participant submit-anvil --help
-dream participant submission-status --help
+anvil-dream-participant --help
+anvil-dream-participant submit --help
+anvil-dream-participant submit-anvil --help
+anvil-dream-participant submission-status --help
 ```
 
 The package includes the participant commands, WDL contract checks, private bundle format,
@@ -64,7 +64,7 @@ directory:
 python -m venv .venv
 . .venv/bin/activate
 python -m pip install .
-dream participant --help
+anvil-dream-participant --help
 ```
 
 Install only this project for participant use. The parent repository's organizer package is

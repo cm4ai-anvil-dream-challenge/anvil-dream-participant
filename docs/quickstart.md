@@ -131,10 +131,10 @@ virtual environment. These commands work from any directory:
 python3.12 --version
 python3.12 -m venv "$HOME/dream-participant-venv"
 . "$HOME/dream-participant-venv/bin/activate"
-PIP_USER=false python -m pip install anvil-dream-participant==0.1.0
-dream participant --help
-dream participant submit --help
-dream participant submit-anvil --help
+PIP_USER=false python -m pip install anvil-dream-participant==0.1.1
+anvil-dream-participant --help
+anvil-dream-participant submit --help
+anvil-dream-participant submit-anvil --help
 ```
 
 The release includes PNG and optional-mask support. Repository access is not
@@ -209,7 +209,7 @@ submission/
 Replace paths and email with your own:
 
 ```sh
-dream participant submit \
+anvil-dream-participant submit \
   --wdl ./submission/workflow.wdl \
   --weights ./submission/weights.pt \
   --other-files ./submission/context \
@@ -227,7 +227,7 @@ Check that the VM sets `WORKSPACE_BUCKET`. Replace the example object paths:
 
 ```sh
 export SUBMISSION_BUCKET="$WORKSPACE_BUCKET"
-dream participant submit-anvil \
+anvil-dream-participant submit-anvil \
   --wdl "$SUBMISSION_BUCKET/path/to/workflow.wdl" \
   --weights "$SUBMISSION_BUCKET/path/to/weights.pt" \
   --other-files "$SUBMISSION_BUCKET/path/to/context/" \
@@ -256,7 +256,7 @@ and authenticated identities. Save the returned `submission_id`. Initial status
 be pending.
 
 ```sh
-dream participant submission-status --submission-id SUBMISSION_ID
+anvil-dream-participant submission-status --submission-id SUBMISSION_ID
 ```
 
 Replace `SUBMISSION_ID` with the returned ID. The command reports `status`,
@@ -291,7 +291,7 @@ does not require the organizer package.
 
 | Symptom | Next step |
 |---|---|
-| `dream` is missing, or expected flags are missing | Activate the participant environment and rerun installation and help commands. |
+| `anvil-dream-participant` is missing, or expected flags are missing | Activate the participant environment and rerun installation and help commands. |
 | Synapse authentication fails | Configure a current token with View, Download, and Modify, then log in again. |
 | Certification or registration is incomplete | Complete the requirements reported by the CLI. Pending requests need organizer approval. |
 | `queue_submit_denied` or `participant_team_queue_access_denied` | Give organizers the queue ID and ask them to check participant Can Submit access. |

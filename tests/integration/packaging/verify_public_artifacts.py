@@ -149,11 +149,11 @@ def verify_wheel(path: str) -> tuple[int, list[str]]:
             name for name in names if name.endswith(".dist-info/entry_points.txt")
         )
         entry_points = archive.read(entry_points_name).decode("utf-8")
-        assert "dream = dream_participant.cli:main" in entry_points
+        assert "anvil-dream-participant = dream_participant.cli:main" in entry_points
         console_scripts = [
             line for line in entry_points.splitlines() if line and not line.startswith("[")
         ]
-        assert console_scripts == ["dream = dream_participant.cli:main"], (
+        assert console_scripts == ["anvil-dream-participant = dream_participant.cli:main"], (
             f"participant wheel exposes unexpected console scripts: {console_scripts}"
         )
     return len(names), modules
@@ -187,7 +187,7 @@ def verify_sdist(path: str) -> tuple[int, list[str]]:
         pyproject = archive.extractfile(pyproject_name)
         assert pyproject is not None
         source = pyproject.read().decode("utf-8")
-        assert 'dream = "dream_participant.cli:main"' in source
+        assert 'anvil-dream-participant = "dream_participant.cli:main"' in source
     return len(names), modules
 
 
