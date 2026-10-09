@@ -29,11 +29,19 @@ RUN python3 -m venv ${VIRTUAL_ENV} \
     && python3 -c "import torch, torchvision; assert torch.__version__ == '2.14.1+cu126'; assert torchvision.__version__ == '0.29.1+cu126'"
 
 ARG PROTICELLI_COMMIT=f894e78d2fbc0530c3637d5f7c457ead0738a5d0
-RUN git clone --filter=blob:none --no-checkout \
-        https://github.com/CellProfiling/ProtiCelli.git /opt/proticelli-src \
+ARG PROTICELLI_SOURCE_SHA256=006b60ebed38d12382ef57075a68fe1369d9028a1cc5e299dc4d7710e3f5c86b
+RUN curl --fail --location --retry 5 --retry-all-errors \
+        --connect-timeout 30 --max-time 300 \
+        "https://codeload.github.com/CellProfiling/ProtiCelli/tar.gz/${PROTICELLI_COMMIT}" \
+        --output /tmp/proticelli-src.tar.gz \
+    && echo "${PROTICELLI_SOURCE_SHA256}  /tmp/proticelli-src.tar.gz" | sha256sum --check - \
+    && mkdir -p /opt/proticelli-src \
+    && tar -xzf /tmp/proticelli-src.tar.gz --strip-components=1 -C /opt/proticelli-src \
+        "ProtiCelli-${PROTICELLI_COMMIT}/pyproject.toml" \
+        "ProtiCelli-${PROTICELLI_COMMIT}/README.md" \
+        "ProtiCelli-${PROTICELLI_COMMIT}/proticelli" \
+    && rm /tmp/proticelli-src.tar.gz \
     && cd /opt/proticelli-src \
-    && git sparse-checkout set proticelli \
-    && git checkout ${PROTICELLI_COMMIT} \
     && python3 -m pip install --no-cache-dir --constraint /tmp/model-runtime.constraints.txt . \
         tifffile==2026.9.9 \
     && cd / \

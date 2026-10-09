@@ -119,7 +119,9 @@ gene map is a TSV with `accession`, `hgnc_symbol`, and optionally
 The checked-in WDL pins the published `quay.io/anvil_dream/blast-proticelli-example`
 image at digest `sha256:59c9a92a5b0b73f1298bf4eac1b9a02d57d505d349c9cd71f43c99f5314d8bf8`.
 The Dockerfile pins ProtiCelli source commit `f894e78d2fbc0530c3637d5f7c457ead0738a5d0`,
-BLAST+ 2.17.0 with a tarball checksum, and a Python 3.12 base image digest. Its
+BLAST+ 2.17.0 with a tarball checksum, and a Python 3.12 base image digest.
+ProtiCelli source is downloaded from GitHub codeload with retries and a pinned
+SHA-256 checksum, avoiding a Git clone during the Docker build. Its
 [runtime constraints](../examples/proticelli/model-runtime.constraints.txt) were read from the published image;
 they pin PyTorch, torchvision, and the model's Python dependency stack for rebuilds. The
 recorded run retains its original image digest. The current image adds PNG,
