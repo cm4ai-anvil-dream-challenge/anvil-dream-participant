@@ -1,0 +1,12 @@
+{
+  "Predict.inputs": [
+    {
+      "prediction_id": "example-001",
+      "microtubules_image": "./example-001-microtubules.tiff",
+      "nucleus_image": "./example-001-nucleus.tiff",
+      "er_image": "./example-001-er.tiff",
+      "fasta_file": "./example-001.fasta"
+    }
+  ],
+  "Predict.weights": "./proticelli-model-bundle.tar"
+}

@@ -6,6 +6,34 @@ participant-authored WDL workflows. It installs the `dream` command and the publ
 include, import, or install the DREAM organizer package, and it does not read runtime assets
 from the parent repository.
 
+## Participant documentation
+
+- [Quickstart](docs/quickstart.md) covers registration, setup, submission, and status.
+- [Submission contract](docs/contract.md) defines the WDL interface and prediction outputs.
+- [Container images](docs/container-images.md) covers publishing and digest pinning.
+- [Benchmark guide](benchmarking/README.md) defines metrics and local benchmarking.
+- [ProtiCelli example](docs/proticelli.md) explains the reference model adapter.
+
+These guides ship with the participant package. Organizer and maintainer documentation
+is maintained separately under `organizer/docs/` in the source repository.
+
+## Develop and test this package
+
+This directory is a standalone project. It contains its own docs, tests, and
+[ProtiCelli example](docs/proticelli.md). From this directory:
+
+```sh
+python3.12 -m venv .venv
+. .venv/bin/activate
+python -m pip install -e '.[dev]'
+python -B -m unittest discover -s tests -t . -v
+python -m build
+```
+
+The participant test suite and release build need no organizer checkout or package.
+The source distribution includes the tests. The wheel includes the public guides
+and runnable example assets and leaves development tests out.
+
 ## Install a published release
 
 After the package is published to PyPI, install it in Python 3.12 or newer:
@@ -51,7 +79,7 @@ workflow = parse_participant_workflow("participant.wdl")
 
 The participant CLI uses this miniwdl-based contract validation when you submit. Java is not
 required. For an optional independent check with Cromwell WOMtool, see the
-[participant quickstart](../docs/participant-quickstart.md#optional-cromwell-wdl-check).
+[participant quickstart](docs/quickstart.md#4-install-the-participant-cli).
 
 ## Run the benchmark
 

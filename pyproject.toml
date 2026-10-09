@@ -20,10 +20,22 @@ dependencies = [
 [project.urls]
 Repository = "https://github.com/cm4ai-anvil-dream-challenge/cm4ai-anvil-dream-tools"
 
+[project.optional-dependencies]
+dev = [
+    "build>=1.2,<2",
+    "numpy>=1.26,<3",
+    "Pillow>=11,<13",
+    "tifffile>=2026.9.9,<2027",
+    "coverage>=7.6,<8",
+    "ruff==0.16.10",
+    "twine>=6,<8",
+]
+
 [project.scripts]
 dream = "dream_participant.cli:main"
 
 [tool.setuptools]
+include-package-data = false
 packages = [
     "dream_participant",
     "dream_participant.benchmarking",
@@ -37,4 +49,11 @@ packages = [
 dream_participant = "."
 
 [tool.setuptools.package-data]
+"dream_participant" = [
+    "README.md", "docs/*.md",
+    "examples/proticelli/*.py", "examples/proticelli/*.json",
+    "examples/proticelli/*.wdl", "examples/proticelli/*.txt",
+    "examples/proticelli/Dockerfile", "examples/proticelli/README.md",
+    "examples/proticelli/scripts/*.py", "examples/proticelli/scripts/*.sh",
+]
 "dream_participant.benchmarking" = ["README.md"]
