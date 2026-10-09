@@ -13,7 +13,6 @@ from unittest.mock import patch
 
 import numpy as np
 from PIL import Image
-import tifffile
 
 from tests.integration.examples.proticelli_support import load_participant_module
 
@@ -23,6 +22,29 @@ IMAGES = load_participant_module("proticelli_images.py", "proticelli_images")
 
 
 class ProtiCelliPngInputsTests(unittest.TestCase):
+    def test_uint8_export_matches_native_ceiling_and_preserves_provenance(self):
+        selection = SimpleNamespace(
+            protein_name="TUBB", accession="P00001", hit_rank=0, bitscore=100,
+            evalue=1e-20, percent_identity=99,
+        )
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            pixels = np.zeros((512, 512), dtype=np.float32)
+            pixels[0, :6] = [-0.1, 0, 0.5, 1.0, 1.3, 1.4]
+            output = IMAGES._write_prediction(root, "136", pixels, selection, "MAAA")
+            with Image.open(output) as image:
+                self.assertEqual(image.format, "PNG")
+                self.assertEqual(image.mode, "L")
+                actual = np.asarray(image)
+            self.assertEqual(actual.dtype, np.dtype("uint8"))
+            np.testing.assert_array_equal(actual[0, :6], [0, 0, 98, 196, 255, 255])
+            with Image.open(output) as image:
+                self.assertEqual(json.loads(image.info["provenance"])["prediction_id"], "136")
+            pixels[0, 0] = np.nan
+            with self.assertRaisesRegex(ValueError, "invalid prediction"):
+                IMAGES._write_prediction(root, "bad", pixels, selection, "MAAA")
+            self.assertFalse((root / "bad.png").exists())
+
     def test_prediction_selects_the_strongest_supported_sequence_across_isoforms(self):
         runner = load_participant_module("predict.py", "proticelli_runner")
         selected_proteins = []
@@ -69,9 +91,9 @@ class ProtiCelliPngInputsTests(unittest.TestCase):
             ):
                 outputs = runner.predict_shard(manifest, root / "weights.tar", output=root / "predictions")
             self.assertEqual(selected_proteins, ["TUBB"])
-            self.assertEqual(outputs[0].name, "136.tiff")
-            with tifffile.TiffFile(outputs[0]) as image:
-                provenance = json.loads(image.pages[0].description)
+            self.assertEqual(outputs[0].name, "136.png")
+            with Image.open(outputs[0]) as image:
+                provenance = json.loads(image.info["provenance"])
             self.assertEqual(provenance["sequence_sha256"], hashlib.sha256(b"MDDD").hexdigest())
             self.assertEqual(provenance["protein_name"], "TUBB")
 
@@ -96,7 +118,7 @@ class ProtiCelliPngInputsTests(unittest.TestCase):
             batch = next(IMAGES.iter_image_batches(inputs, {fasta: "MAAA"}, selections))
             self.assertEqual(batch.images.shape, (1, 512, 512, 3))
             np.testing.assert_array_equal(batch.images[0, 0, 0],
-                                          np.array([1, 0, 128 / 255], dtype=np.float32))
+                                          np.array([255, 0, 128], dtype=np.uint8))
             self.assertEqual(batch.inputs[0].mask_image, root / "136_mask_image.png")
 
     def test_invalid_mask_is_rejected_before_inference(self):

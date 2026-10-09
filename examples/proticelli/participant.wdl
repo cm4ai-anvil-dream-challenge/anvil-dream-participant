@@ -35,6 +35,6 @@ task Predict {
   }
 
   output {
-    Array[File] predictions = glob("predictions/*.tiff")
+    Array[File] predictions = glob("predictions/*.png")
   }
 }

@@ -21,7 +21,7 @@ def predict_shard(
     seed: int = 0,
     output: str | Path,
 ) -> tuple[Path, ...]:
-    """Map distinct FASTA sequences once and write ID-matched prediction TIFFs."""
+    """Map distinct FASTA sequences once and write ID-matched prediction PNGs."""
     if batch_size <= 0 or inference_steps <= 0:
         raise ValueError("batch_size and inference_steps must be positive")
     try:
@@ -134,7 +134,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Run ProtiCelli from microtubules_image, nucleus_image, er_image, and fasta_file "
-            "inputs; write each result as <prediction_id>.tiff."
+            "inputs; write each result as <prediction_id>.png."
         )
     )
     parser.add_argument("--inputs-manifest", type=Path, required=True)

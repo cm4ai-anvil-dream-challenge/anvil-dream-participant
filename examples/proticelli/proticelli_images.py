@@ -37,15 +37,15 @@ def _read_image(path: Path) -> Any:
             with Image.open(path) as source:
                 if source.format != "PNG" or source.mode != "L":
                     raise ValueError(f"PNG must be 8-bit grayscale: {path.name}")
-                image = np.asarray(source, dtype=np.float32) / np.float32(255)
+                image = np.asarray(source, dtype=np.uint8)
         else:
             image = tifffile.imread(path)
     except Exception as error:
         raise ValueError(f"could not read image {path}: {error}") from error
     if tuple(image.shape) != _INPUT_IMAGE_SHAPE:
         raise ValueError(f"image {path.name} must have shape [512, 512]")
-    if image.dtype != np.dtype("float32"):
-        raise ValueError(f"image {path.name} must use float32")
+    if image.dtype != np.dtype("uint8"):
+        raise ValueError(f"image {path.name} must use uint8")
     if not np.isfinite(image).all():
         raise ValueError(f"image {path.name} must contain only finite values")
     return image
@@ -100,7 +100,8 @@ def _write_prediction(
     sequence: str,
 ) -> Path:
     import numpy as np
-    import tifffile
+    from PIL import Image
+    from PIL.PngImagePlugin import PngInfo
 
     prediction = np.asarray(image, dtype=np.float32)
     if tuple(prediction.shape) != _PREDICTION_SHAPE or not np.isfinite(prediction).all():
@@ -116,6 +117,9 @@ def _write_prediction(
         "evalue": selection.evalue,
         "percent_identity": selection.percent_identity,
     }
-    output = destination / f"{prediction_id}.tiff"
-    tifffile.imwrite(output, prediction, description=json.dumps(provenance, sort_keys=True))
+    output = destination / f"{prediction_id}.png"
+    encoded = np.clip(prediction / np.float32(1.3) * np.float32(255), 0, 255).astype(np.uint8)
+    metadata = PngInfo()
+    metadata.add_text("provenance", json.dumps(provenance, sort_keys=True))
+    Image.fromarray(encoded).save(output, pnginfo=metadata)
     return output

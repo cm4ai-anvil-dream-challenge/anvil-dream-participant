@@ -121,7 +121,7 @@ class SubmissionBundleTests(unittest.TestCase):
             root = Path(directory)
             wdl, weights, other = self._files(root)
             (other / "predictions").mkdir()
-            (other / "predictions" / "fake.tiff").write_bytes(b"fake")
+            (other / "predictions" / "fake.png").write_bytes(b"fake")
 
             with self.assertRaisesRegex(BundleValidationError, "DREAM runtime path"):
                 SubmissionBundle.create(

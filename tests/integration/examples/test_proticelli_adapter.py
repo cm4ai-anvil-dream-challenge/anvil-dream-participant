@@ -9,7 +9,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import numpy as np
-import tifffile
+from PIL import Image
 
 from tests.integration.examples.proticelli_support import (
     load_participant_module,
@@ -24,9 +24,9 @@ class ProtiCelliAdapterTests(unittest.TestCase):
         module = load_participant_module("predict.py", "proticelli_runner")
         call_log: list[tuple[str, object]] = []
         values = {
-            "microtubules_image": -1.0,
-            "nucleus_image": 0.5,
-            "er_image": 1.2,
+            "microtubules_image": 0,
+            "nucleus_image": 128,
+            "er_image": 255,
         }
 
         class Model:
@@ -49,8 +49,8 @@ class ProtiCelliAdapterTests(unittest.TestCase):
             for prediction_id in ("z-view-2", "a-view-1"):
                 paths = {}
                 for field, value in values.items():
-                    path = root / f"{prediction_id}-{field}.tiff"
-                    tifffile.imwrite(path, np.full((512, 512), value, dtype=np.float32))
+                    path = root / f"{prediction_id}-{field}.png"
+                    Image.fromarray(np.full((512, 512), value, dtype=np.uint8)).save(path)
                     paths[field] = path
                 fasta = root / f"{prediction_id}.fasta"
                 fasta.write_text(">explicit record\nMAAA\n", encoding="ascii")
@@ -86,10 +86,10 @@ class ProtiCelliAdapterTests(unittest.TestCase):
                 )
 
             self.assertEqual(
-                tuple(path.name for path in outputs), ("z-view-2.tiff", "a-view-1.tiff")
+                tuple(path.name for path in outputs), ("z-view-2.png", "a-view-1.png")
             )
-            self.assertEqual([tifffile.imread(path).shape for path in outputs], [(512, 512)] * 2)
-            self.assertEqual(float(tifffile.imread(outputs[1]).max()), 1.0)
+            self.assertEqual([np.asarray(Image.open(path)).shape for path in outputs], [(512, 512)] * 2)
+            self.assertEqual(float(np.asarray(Image.open(outputs[1])).max()), 196.0)
             rank_hits.assert_called_once()
             self.assertEqual(rank_hits.call_args.kwargs["target_count"], 3)
 
@@ -98,7 +98,7 @@ class ProtiCelliAdapterTests(unittest.TestCase):
         self.assertEqual(images.shape, (2, 512, 512, 3))
         for actual, expected in zip(
             [float(images[0, 0, 0, channel]) for channel in range(3)],
-            [-1.0, 0.5, 1.2],
+            [0, 128, 255],
             strict=True,
         ):
             self.assertAlmostEqual(actual, expected)

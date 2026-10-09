@@ -4,27 +4,52 @@ This example receives one lane of independently pinned, pre-aligned images and
 protein FASTA files. Its `PredictionInput` record contains:
 
 - `prediction_id`: stable identity used to name the prediction
-- `microtubules_image`, `nucleus_image`, and `er_image`: separate 2D float32
+- `microtubules_image`, `nucleus_image`, and `er_image`: separate 2D uint8
   TIFFs or 8-bit grayscale PNGs in ProtiCelli's channel order
 - `fasta_file`: an explicit FASTA containing one or more protein sequences
 - `mask_image`: an optional localized cell mask, validated by the adapter
 
 The public task receives no grading target, target-protein label, or cell-line
-label. The organizer keeps the 2D target TIFF in private storage and supplies it
+label. The organizer keeps the 2D target image in private storage and supplies it
 only to the trusted grading workflow. The images are assumed to be spatially
-aligned already. Their float32 values must be finite and normalized for the
-model; the organizer does not impose one fixed numeric range.
+aligned already. Stored pixel values are integers from 0 to 255. The adapter passes uint8 arrays directly to ProtiCelli, which normalizes
+them internally.
 
 The command placeholder `~{write_json(inputs)}` creates the JSON array of
 localized file paths. Keep it in the command. The prediction script reads each
 FASTA once, resolves each unique sequence once, and chooses the strongest
 supported BLAST match across all sequences in each file. Higher bitscore wins,
 then lower e-value; ties keep FASTA order. It stacks image planes in
-microtubules/nucleus/ER order, and writes `<prediction_id>.tiff`. It runs local
+microtubules/nucleus/ER order, and writes `<prediction_id>.png`. It runs local
 BLAST against the reference database in the weights ZIP, walks hits by score
 until it finds a gene in the model vocabulary, and fails the task explicitly if
 no hit is supported. The selected accession, hit rank, sequence digest, and
-score are stored in each output TIFF's description for provenance.
+score are stored in each output PNG's provenance text metadata.
+
+## Prediction format and precision
+
+Prediction outputs are **uint8 PNGs**, matching the 8-bit pixel domain of the
+input PNGs and private targets. ProtiCelli computes floating-point predictions;
+the example matches the pinned native exporter: divide by the decoder ceiling
+1.3, multiply by 255, clip to [0, 255], and cast to uint8, truncating fractions.
+It writes `<prediction_id>.png` and retains per-image provenance. This pixel conversion matches
+[`PredictionResult.save_prediction(raw=False)` in the pinned source](https://github.com/CellProfiling/ProtiCelli/blob/f894e78d2fbc0530c3637d5f7c457ead0738a5d0/proticelli/model.py#L131-L156).
+Nonfinite model outputs are rejected before conversion.
+
+ProtiCelli supports uint8 inputs and performs required normalization internally.
+Grading reads targets and predictions in the original 0–255 domain without
+normalizing either array. It uses float64 arithmetic to avoid unsigned
+subtraction overflow and accumulate metrics accurately. Model weight or compute
+quantization is a separate feature; saving uint8 outputs does not quantize the
+model itself or establish an inference energy saving.
+
+The output contract requires uint8 PNGs, with provenance in a text metadata
+chunk. See the [PNG specification](https://www.w3.org/TR/png-3/).
+
+This replaces the previous float32 prediction contract. Rebuild the participant
+example and organizer grader images together before deploying. Existing
+float32 predictions must not be reused as uint8 results. Previously published
+scores and archives retain their original interpretation.
 
 The expected outer weights ZIP layout is:
 

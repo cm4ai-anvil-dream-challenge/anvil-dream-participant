@@ -165,8 +165,8 @@ class WorkflowContractTests(unittest.TestCase):
             (
                 "extra-output",
                 source.replace(
-                    'Array[File] predictions = glob("predictions/*.tiff")',
-                    'Array[File] predictions = glob("predictions/*.tiff")\n    String status = "ok"',
+                    'Array[File] predictions = glob("predictions/*.png")',
+                    'Array[File] predictions = glob("predictions/*.png")\n    String status = "ok"',
                     1,
                 ),
                 "must expose only the predictions output",
