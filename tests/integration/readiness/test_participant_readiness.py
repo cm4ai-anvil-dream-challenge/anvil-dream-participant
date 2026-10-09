@@ -204,8 +204,9 @@ class SynapseReadinessTests(unittest.TestCase):
                 "gs://source-bucket/model/workflow.wdl",
                 "--weights",
                 "gs://source-bucket/model/weights.pt",
-                "--other-files",
+                "--files",
                 "gs://source-bucket/context/",
+                "--recursive",
                 "--evaluation-id",
                 "9620087",
                 "--name",
@@ -218,7 +219,8 @@ class SynapseReadinessTests(unittest.TestCase):
         self.assertEqual(args.command, "submit-anvil")
         self.assertEqual(args.wdl, "gs://source-bucket/model/workflow.wdl")
         self.assertEqual(args.weights, "gs://source-bucket/model/weights.pt")
-        self.assertEqual(args.other_files, "gs://source-bucket/context/")
+        self.assertEqual(args.files, ["gs://source-bucket/context/"])
+        self.assertTrue(args.recursive)
         self.assertFalse(hasattr(args, "anvil_email"))
         self.assertEqual(args.evaluation_id, "9620087")
         self.assertEqual(args.name, "anvil-run")

@@ -43,7 +43,7 @@ class GcsPrefix:
     def parse(cls, value: str, field: str) -> GcsPrefix:
         bucket, name = _uri_parts(value, field)
         if not name.endswith("/"):
-            raise GcsStagingError(f"{field} must end with '/' to identify a GCS prefix")
+            name += "/"
         _relative_path(name[:-1], field)
         return cls(bucket, name)
 
@@ -56,23 +56,24 @@ class GcsPrefix:
 class GcsSubmissionSources:
     wdl: GcsObject
     weights: GcsObject
-    other_files: GcsPrefix | None
+    files: tuple[GcsObject | GcsPrefix, ...]
 
     @classmethod
     def parse(
         cls,
         wdl: str,
         weights: str,
-        other_files: str | None,
+        files: list[str] | None = None,
+        *,
+        recursive: bool = False,
     ) -> GcsSubmissionSources:
+        if recursive and not files:
+            raise GcsStagingError("--recursive requires --files with at least one GCS directory")
+        source_type = GcsPrefix if recursive else GcsObject
         return cls(
             wdl=GcsObject.parse(wdl, "--wdl"),
             weights=GcsObject.parse(weights, "--weights"),
-            other_files=(
-                GcsPrefix.parse(other_files, "--other-files")
-                if other_files is not None
-                else None
-            ),
+            files=tuple(source_type.parse(value, "--files") for value in (files or [])),
         )
 
 
@@ -152,17 +153,24 @@ def stage_gcs_submission_files(
         (_load_object(client, sources.wdl), "workflow.wdl"),
         (_load_object(client, sources.weights), "weights"),
     ]
-    optional = _list_prefix(client, sources.other_files, limits) if sources.other_files else []
+    optional: list[tuple[_ObjectVersion, str]] = []
+    for source in sources.files:
+        if isinstance(source, GcsPrefix):
+            optional.extend(_list_prefix(client, source, limits))
+        else:
+            optional.append((_load_object(client, source), PurePosixPath(source.name).name))
+        _validate_limits([*fixed, *optional], limits)
     selected = [*fixed, *optional]
     _validate_limits(selected, limits)
     _validate_tree_paths([relative for _, relative in optional])
 
     wdl_path = root / "workflow.wdl"
     weights_path = root / "weights"
-    other_root = root / "other" if sources.other_files is not None else None
-    for version, relative in selected:
-        target = root / relative if relative in {"workflow.wdl", "weights"} else root / "other" / relative
-        _download_object(client, version, target, root)
+    other_root = root / "other" if sources.files else None
+    for version, relative in fixed:
+        _download_object(client, version, root / relative, root)
+    for version, relative in optional:
+        _download_object(client, version, root / "other" / relative, root)
     return StagedGcsSubmissionFiles(wdl_path, weights_path, other_root)
 
 
@@ -199,10 +207,6 @@ def _list_prefix(
                     f"GCS directory marker must be empty: gs://{prefix.bucket}/{name}"
                 )
             _relative_path(relative, f"gs://{prefix.bucket}/{name}")
-            if PurePosixPath(relative).parts[0] in RUNTIME_RESERVED_PATHS:
-                raise GcsStagingError(
-                    f"other-files path {relative!r} conflicts with a DREAM runtime path"
-                )
             source = GcsObject(prefix.bucket, name)
             version = _object_version(source, blob, known_size=size)
             result.append((version, relative))
@@ -265,8 +269,12 @@ def _validate_limits(
 def _validate_tree_paths(paths: list[str]) -> None:
     path_set = set(paths)
     if len(path_set) != len(paths):
-        raise GcsStagingError("GCS prefix contains duplicate relative file paths")
+        raise GcsStagingError("GCS files contain duplicate relative file paths")
     for path in paths:
+        if PurePosixPath(path).parts[0] in RUNTIME_RESERVED_PATHS:
+            raise GcsStagingError(
+                f"supporting file path {path!r} conflicts with a DREAM runtime path"
+            )
         for parent in PurePosixPath(path).parents:
             if parent != PurePosixPath(".") and str(parent) in path_set:
                 raise GcsStagingError(f"GCS files contain a file/directory path conflict: {parent}")

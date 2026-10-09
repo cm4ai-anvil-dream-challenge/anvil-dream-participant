@@ -109,7 +109,7 @@ def build_parser(prog: str | None = None) -> argparse.ArgumentParser:
         help="submit from GCS objects in an AnVIL RStudio VM",
         description=(
             "Use the authenticated AnVIL VM identity to read the WDL, weights, and optional "
-            "GCS prefix, stage them locally, then submit the same private TAR to Synapse."
+            "GCS files, stage them locally, then build and submit one private TAR to Synapse."
         ),
     )
     submit_anvil.add_argument(
@@ -123,8 +123,15 @@ def build_parser(prog: str | None = None) -> argparse.ArgumentParser:
         help="gs://bucket/object path to participant weights",
     )
     submit_anvil.add_argument(
-        "--other-files",
-        help="optional gs://bucket/prefix/ whose relative file paths are preserved",
+        "--files",
+        nargs="+",
+        metavar="GS_PATH",
+        help="supporting GCS objects, separated by spaces; use --recursive for directories",
+    )
+    submit_anvil.add_argument(
+        "--recursive",
+        action="store_true",
+        help="read all files below each --files GCS directory, preserving relative paths",
     )
     submit_anvil.add_argument(
         "--evaluation-id",
@@ -232,7 +239,9 @@ def _submit_bundle(
 
 def _submit_anvil_bundle(config: ParticipantConfig, args: argparse.Namespace) -> int:
     try:
-        sources = GcsSubmissionSources.parse(args.wdl, args.weights, args.other_files)
+        sources = GcsSubmissionSources.parse(
+            args.wdl, args.weights, args.files, recursive=args.recursive
+        )
     except GcsStagingError as error:
         raise SystemExit(f"submission validation failed: {error}") from error
 

@@ -141,8 +141,13 @@ in private organizer storage. It embeds the validated `Predict` task in the
 organizer workflow and does not publish the submitted WDL or grant it public read
 access. The container image must remain publicly pullable by Cromwell.
 
-`--other-files` is optional. The CLI includes only the explicit WDL, weights,
-and files below that directory. It rejects symlinks, devices, traversal,
+Supporting files are optional. Local `submit` uses `--other-files DIRECTORY`.
+GCS `submit-anvil` uses `--files GS_PATH [GS_PATH ...]` for individual objects,
+or adds `--recursive` to include files below each specified directory prefix.
+Individual GCS objects use their filenames; recursive copies preserve paths
+relative to each prefix. The CLI builds and uploads the submission TAR automatically.
+It includes only the explicit WDL, weights, and selected supporting files.
+It rejects symlinks, devices, traversal,
 duplicate archive paths, malformed TAR members, and files over configured
 limits. The organizer validates every header, digest, and fingerprint while
 streaming extraction, then stores the original TAR under an immutable,

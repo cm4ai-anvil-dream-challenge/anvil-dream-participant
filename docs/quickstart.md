@@ -131,7 +131,7 @@ virtual environment. These commands work from any directory:
 python3.12 --version
 python3.12 -m venv "$HOME/dream-participant-venv"
 . "$HOME/dream-participant-venv/bin/activate"
-PIP_USER=false python -m pip install anvil-dream-participant==0.1.1
+PIP_USER=false python -m pip install anvil-dream-participant==0.1.2
 anvil-dream-participant --help
 anvil-dream-participant submit --help
 anvil-dream-participant submit-anvil --help
@@ -230,15 +230,34 @@ export SUBMISSION_BUCKET="$WORKSPACE_BUCKET"
 anvil-dream-participant submit-anvil \
   --wdl "$SUBMISSION_BUCKET/path/to/workflow.wdl" \
   --weights "$SUBMISSION_BUCKET/path/to/weights.pt" \
-  --other-files "$SUBMISSION_BUCKET/path/to/context/" \
+  --files "$SUBMISSION_BUCKET/path/to/config.yaml" "$SUBMISSION_BUCKET/path/to/tokens.json" \
   --evaluation-id "$DREAM_EVALUATION_ID" \
   --name my-model-v1
 ```
 
-Use `gs://bucket/object` URLs for files and a trailing slash for the optional prefix.
-Omit `--other-files` when unnecessary. For another bucket, set `SUBMISSION_BUCKET`
-to its `gs://` URL and verify VM access. Allow temporary disk space for both the
-downloaded files and the submission TAR.
+Use `--files` followed by space-separated `gs://bucket/object` URLs for supporting
+files. Each file becomes available by its filename, such as `config.yaml`, in the
+prediction task's working directory. Omit `--files` when no supporting files are needed.
+
+To include an entire GCS directory, add `--recursive`:
+
+```sh
+anvil-dream-participant submit-anvil \
+  --wdl "$SUBMISSION_BUCKET/path/to/workflow.wdl" \
+  --weights "$SUBMISSION_BUCKET/path/to/weights.pt" \
+  --files "$SUBMISSION_BUCKET/path/to/context/" --recursive \
+  --evaluation-id "$DREAM_EVALUATION_ID" \
+  --name my-model-v1
+```
+
+Recursive mode treats every `--files` path as a directory prefix. A trailing slash
+is optional. Paths below each prefix are preserved: `context/vocab/tokens.json`
+becomes `vocab/tokens.json`. You can provide multiple directories, including ones
+in different buckets. Duplicate destination paths and file/directory conflicts
+are rejected before download. `--recursive` requires `--files`.
+
+For another bucket, set `SUBMISSION_BUCKET` to its `gs://` URL and verify VM access.
+Allow temporary disk space for both the downloaded files and the submission TAR.
 
 The CLI creates or reuses your private Synapse submission project and builds the
 TAR and manifest automatically. Do not submit a Dockerfile or build the manifest

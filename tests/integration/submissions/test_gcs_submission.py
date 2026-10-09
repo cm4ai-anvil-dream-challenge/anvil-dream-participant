@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import tempfile
+import tarfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
@@ -86,11 +87,96 @@ class FakeStorageClient:
 
 
 class GcsSubmissionTests(unittest.TestCase):
+    def test_explicit_files_use_filenames_in_the_bundle_with_pinned_downloads(self) -> None:
+        client = self._client()
+        config = FakeBlob("context/nested/config.yaml", b"seed: 3\n", generation=29)
+        tokens = FakeBlob("vocab/tokens.json", b'["a"]', generation=31)
+        client.objects["source-bucket", config.name] = config
+        client.objects["another-bucket", tokens.name] = tokens
+        args = build_parser().parse_args([
+            "submit-anvil", "--wdl", "gs://source-bucket/model/workflow.wdl",
+            "--weights", "gs://source-bucket/model/weights.pt", "--files",
+            "gs://source-bucket/context/nested/config.yaml", "gs://another-bucket/vocab/tokens.json",
+        ])
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            staged = self._stage(client, GcsSubmissionSources.parse(
+                args.wdl, args.weights, args.files, recursive=args.recursive,
+            ), root / "staged")
+            bundle = SubmissionBundle.create(
+                wdl=staged.wdl, weights=staged.weights, other_files=staged.other_files,
+                synapse_user_id="123", anvil_email="person@example.org",
+                anvil_subject_id="sam-subject",
+            )
+            with tarfile.open(bundle.write_archive(root / "submission.tar")) as archive:
+                self.assertEqual(archive.extractfile("other/config.yaml").read(), b"seed: 3\n")
+                self.assertEqual(archive.extractfile("other/tokens.json").read(), b'["a"]')
+        self.assertEqual(config.downloads, [(29, 29)])
+        self.assertEqual(tokens.downloads, [(31, 31)])
+
+    def test_duplicate_file_names_fail_before_downloading(self) -> None:
+        client = self._client()
+        for name in ("first/config.yaml", "second/config.yaml"):
+            client.objects["source-bucket", name] = FakeBlob(name, b"config")
+        sources = GcsSubmissionSources.parse(
+            "gs://source-bucket/model/workflow.wdl", "gs://source-bucket/model/weights.pt",
+            ["gs://source-bucket/first/config.yaml", "gs://source-bucket/second/config.yaml"],
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            with self.assertRaisesRegex(GcsStagingError, "duplicate relative file paths"):
+                self._stage(client, sources, Path(directory))
+        self.assertTrue(all(not blob.downloads for blob in client.objects.values()))
+
+    def test_multiple_recursive_directories_preserve_paths_and_reject_conflicts(self) -> None:
+        client = self._client()
+        files = [FakeBlob("first/nested/config.yaml", b"config"),
+                 FakeBlob("second/vocab/tokens.json", b"tokens")]
+        for blob in files:
+            client.objects["source-bucket", blob.name] = blob
+        client.list_blobs = lambda bucket, prefix: [
+            blob for blob in files if blob.name.startswith(prefix)
+        ]
+        sources = GcsSubmissionSources.parse(
+            "gs://source-bucket/model/workflow.wdl", "gs://source-bucket/model/weights.pt",
+            ["gs://source-bucket/first", "gs://source-bucket/second/"], recursive=True,
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            staged = self._stage(client, sources, Path(directory))
+            self.assertEqual((staged.other_files / "nested/config.yaml").read_bytes(), b"config")
+            self.assertEqual((staged.other_files / "vocab/tokens.json").read_bytes(), b"tokens")
+        conflict = FakeBlob("second/nested/config.yaml", b"other")
+        files.append(conflict)
+        client.objects["source-bucket", conflict.name] = conflict
+        for blob in client.objects.values():
+            blob.downloads.clear()
+        with tempfile.TemporaryDirectory() as directory:
+            with self.assertRaisesRegex(GcsStagingError, "duplicate relative file paths"):
+                self._stage(client, sources, Path(directory))
+        self.assertTrue(all(not blob.downloads for blob in client.objects.values()))
+
+    def test_recursive_requires_files_and_reserved_filenames_fail_before_download(self) -> None:
+        with self.assertRaisesRegex(GcsStagingError, "--recursive requires --files"):
+            GcsSubmissionSources.parse(
+                "gs://source-bucket/model/workflow.wdl", "gs://source-bucket/model/weights.pt",
+                recursive=True,
+            )
+        client = self._client()
+        client.objects["source-bucket", "context/predictions"] = FakeBlob("context/predictions", b"bad")
+        sources = GcsSubmissionSources.parse(
+            "gs://source-bucket/model/workflow.wdl", "gs://source-bucket/model/weights.pt",
+            ["gs://source-bucket/context/predictions"],
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            with self.assertRaisesRegex(GcsStagingError, "runtime path"):
+                self._stage(client, sources, Path(directory))
+        self.assertTrue(all(not blob.downloads for blob in client.objects.values()))
+
     def _sources(self, other: str | None = None) -> GcsSubmissionSources:
         return GcsSubmissionSources.parse(
             "gs://source-bucket/model/workflow.wdl",
             "gs://source-bucket/model/weights.pt",
-            other,
+            [other] if other else None,
+            recursive=other is not None,
         )
 
     def _client(self, prefix_objects: list[FakeBlob] | None = None) -> FakeStorageClient:
@@ -141,11 +227,11 @@ class GcsSubmissionTests(unittest.TestCase):
                     None,
                 )
 
-        with self.assertRaisesRegex(GcsStagingError, "end with '/'"):
+        with self.assertRaisesRegex(GcsStagingError, "not a prefix"):
             GcsSubmissionSources.parse(
                 "gs://source-bucket/model/workflow.wdl",
                 "gs://source-bucket/model/weights.pt",
-                "gs://source-bucket/context",
+                ["gs://source-bucket/context/"],
             )
 
     def test_empty_other_files_prefix_fails_before_download(self) -> None:
@@ -276,8 +362,9 @@ class GcsSubmissionTests(unittest.TestCase):
                 "gs://source-bucket/model/workflow.wdl",
                 "--weights",
                 "gs://source-bucket/model/weights.pt",
-                "--other-files",
+                "--files",
                 "gs://source-bucket/context/",
+                "--recursive",
             ]
         )
         config = participant_config_for_evaluation(args.evaluation_id)
@@ -294,7 +381,7 @@ class GcsSubmissionTests(unittest.TestCase):
         self.assertEqual(events, ["identity", "stage", "bundle"])
         terra.authenticated_anvil_identity_from_sam.assert_called_once_with()
         stage.assert_called_once_with(
-            GcsSubmissionSources.parse(args.wdl, args.weights, args.other_files),
+            GcsSubmissionSources.parse(args.wdl, args.weights, args.files, recursive=args.recursive),
             unittest.mock.ANY,
             credentials="vm-credentials",
             project="vm-project",
