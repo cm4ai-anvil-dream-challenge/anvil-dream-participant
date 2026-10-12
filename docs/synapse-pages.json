@@ -51,36 +51,6 @@
       "imported_sha256": "2bb35a43935b5be85203aa2840ea1c899dc124ac59d6caba894610b6d517f4ae"
     },
     {
-      "source": "docs/participants-and-teams.md",
-      "title": "Participants & Teams",
-      "wiki_id": "642245",
-      "parent_wiki_id": "639954",
-      "etag": "d9f7a07e-97a3-453a-bee4-d9d3b68bd7ff",
-      "modified_on": "2026-08-20T16:40:52.017Z",
-      "source_sha256": "be466c1a3c413c081214aebe0b3b1d5a50c37dca91dffc3e91d969699825f964",
-      "imported_sha256": "bada920dde7cd24e98f2288b60a04ecf03328628148b424779bfbc11e1c8a9fd"
-    },
-    {
-      "source": "docs/results.md",
-      "title": "Results",
-      "wiki_id": "642816",
-      "parent_wiki_id": "639954",
-      "etag": "dacf17cd-4cc1-4a7e-9531-83a986effa0c",
-      "modified_on": "2026-09-08T19:56:36.557Z",
-      "source_sha256": "6dc5a4faa962cb89531bfa2734bdbaf23460ad433ca4151a03e2634725ebfcea",
-      "imported_sha256": "cdc92a74b767e86e93f79efab06546e6544b940f38392cc247cdc686f64955d1"
-    },
-    {
-      "source": "docs/submission.md",
-      "title": "Submission",
-      "wiki_id": "642241",
-      "parent_wiki_id": "639954",
-      "etag": "3d0bb581-152b-4b75-a1ae-1e3570313bc8",
-      "modified_on": "2026-07-06T16:57:22.593Z",
-      "source_sha256": "103d8c44446b505dd6e9faca624527adb4016724eaec4519ebcd299856c863f9",
-      "imported_sha256": "39baf07a92c53b382f12da47f86dd3a84d7f9b3afb48b27b38366fd4291f016c"
-    },
-    {
       "source": "docs/challenge.md",
       "title": "The Challenge",
       "wiki_id": "642240",
@@ -89,36 +59,6 @@
       "modified_on": "2026-08-26T00:53:44.350Z",
       "source_sha256": "8c48d77dd40c489376407666d47e5f7c2c4bda5e74dd6d2b4311206a9af1a68f",
       "imported_sha256": "04c558630dbace5b64f78dfd07c4fa055a017bef9e599c0fce4255104a42fe19"
-    },
-    {
-      "source": "docs/anvil-compute.md",
-      "title": "AnVIL Compute",
-      "wiki_id": "642239",
-      "parent_wiki_id": "642240",
-      "etag": "78a18490-9a0c-4507-8aee-0ca0937640cf",
-      "modified_on": "2026-07-10T20:22:06.443Z",
-      "source_sha256": "f987f9cbf4492197d389391bdc891ae51d9a9f97f7379a54b6f6f0dca5f3cbce",
-      "imported_sha256": "96b6f7840ef8a0fa8bed04da3b5fc915b3876b92ecc407375818bc1ec81f99aa"
-    },
-    {
-      "source": "docs/data.md",
-      "title": "Data",
-      "wiki_id": "642238",
-      "parent_wiki_id": "642240",
-      "etag": "e8eb1dcc-9bf6-4f72-8dea-5db7b85842ee",
-      "modified_on": "2026-08-26T18:57:56.267Z",
-      "source_sha256": "e2a54cc0116d6c60c4a36707884d6dc17c29030ce48c29bf6939da3ef7da1872",
-      "imported_sha256": "9184996c5f5b6d012f1097f7ccd2ea97b378c24c8a80fcfbd0ad4657468421f9"
-    },
-    {
-      "source": "docs/evaluation.md",
-      "title": "Evaluation",
-      "wiki_id": "642243",
-      "parent_wiki_id": "642240",
-      "etag": "0aa03efb-dcc8-4bc7-bd93-0c888527b636",
-      "modified_on": "2026-07-06T17:11:40.623Z",
-      "source_sha256": "a29a7778cfa846f96358402d2c0a533776587b809c29264b341c0a3e1914d65e",
-      "imported_sha256": "01ff98b7a8cd614431741e2ced9ce4b8c52c96dac43b713dc368fa21edaad87c"
     },
     {
       "source": "docs/benchmark.md",
@@ -189,16 +129,6 @@
       "modified_on": "2026-10-09T20:03:18.548Z",
       "source_sha256": "dc0698586c52955c9f39304fdc40f34c1ec2ee79f19d7276354a244de59d05bb",
       "imported_sha256": "c778a2ad3db9624422c6ca5ecab8d794e3b5c3844cbd5922b05580e70bcf6a32"
-    },
-    {
-      "source": "docs/toy-results.md",
-      "title": "Toy Results",
-      "wiki_id": "642754",
-      "parent_wiki_id": "642241",
-      "etag": "40a5215a-5afc-4115-8e80-1d165cc61bf2",
-      "modified_on": "2026-09-08T19:55:43.354Z",
-      "source_sha256": "ae0020e1826dabdedc592945b1f81cb90d02e08227c43adf0f73481f3c35261d",
-      "imported_sha256": "ae0020e1826dabdedc592945b1f81cb90d02e08227c43adf0f73481f3c35261d"
     }
   ],
   "attachments": [

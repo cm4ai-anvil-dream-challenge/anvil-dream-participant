@@ -19,13 +19,7 @@ PARTICIPANT_GUIDES = {
     "docs/challenge-rules.md",
     "docs/motivation-and-background.md",
     "docs/news-and-timeline.md",
-    "docs/participants-and-teams.md",
-    "docs/results.md",
-    "docs/submission.md",
     "docs/challenge.md",
-    "docs/anvil-compute.md",
-    "docs/data.md",
-    "docs/evaluation.md",
     "docs/benchmark.md",
     "docs/cli.md",
     "docs/container-images.md",
@@ -33,7 +27,6 @@ PARTICIPANT_GUIDES = {
     "docs/proticelli.md",
     "docs/reading-list.md",
     "docs/contract.md",
-    "docs/toy-results.md",
 }
 
 
