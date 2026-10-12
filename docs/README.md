@@ -4,23 +4,15 @@ These pages were imported from the Synapse wiki on October 12, 2026.
 They are the baseline for maintaining the documentation in this repository and later
 mirroring changes to Synapse. This import did not update any Synapse page.
 
-The wording is retained from Synapse. Wiki links, headings, and the banner were adapted
-for GitHub; registration remains on Synapse. Existing code and deployment changes may
-need to be reconciled with this imported documentation before the first reverse sync.
+The guides have been updated to match the current package: Python imports use
+`anvil_dream_participant`, predictions use uint8 PNGs, and the ProtiCelli guide
+describes explicit input normalization and nucleus-reference output scaling.
+Synapse retains its original content. Review these changes before any future
+sync back to Synapse.
+
 Page IDs, hierarchy, source timestamps, and checksums are recorded in
-[synapse-pages.json](synapse-pages.json).
-
-## Differences to reconcile before publishing back
-
-- The imported submission instructions specify float32 TIFF predictions.
-  The current adapter and organizer require uint8 PNG predictions.
-- The imported CLI and benchmark examples use `dream_participant` imports.
-  The current package uses `anvil_dream_participant`.
-- The imported ProtiCelli guide predates the explicit ImageNormalizer and
-  nucleus-reference output scaling implemented in the current adapter.
-
-These differences are recorded here rather than silently changing the Synapse
-content during the initial import. No reverse sync has run.
+[synapse-pages.json](synapse-pages.json). Source checksums describe the original
+import; document checksums describe the current repository pages.
 
 Organizer planning drafts and generated test results are maintained in the parent
 repository under `organizer/docs/synapse-drafts/`. Reading a page with organizer

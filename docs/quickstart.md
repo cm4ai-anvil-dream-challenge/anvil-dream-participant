@@ -70,7 +70,7 @@ task Predict {
   >>>
 
   output {
-    Array[File] predictions = glob("predictions/*.tiff")
+    Array[File] predictions = glob("predictions/*.png")
   }
 
   runtime {
@@ -90,11 +90,12 @@ FASTA file. The optional `mask_image` receives a cell mask when available. Keep
 localized paths. Do not declare a task-level manifest file or infer sequence from
 a filename.
 
-Write one finite, two-dimensional `512 x 512` float32 TIFF per input record, named
-exactly `<prediction_id>.tiff`. Put these files in `predictions/` and return them
-through the WDL output. Source images may be float32 TIFFs or 8-bit grayscale PNGs.
-Convert PNG pixels to float32 and divide by 255 before prediction. Private target
-images are available only to organizer grading.
+Write one single-channel `512 x 512` uint8 PNG per input record, named
+exactly `<prediction_id>.png`. Put these files in `predictions/` and return them
+through the WDL output. Reference images use uint8 pixels. Apply the input
+normalization required by your model inside the container, and encode predictions
+on the native 0–255 intensity scale. Private target images are available only to
+organizer grading.
 
 Prepare one weights file in the format your model expects. An archive is acceptable
 if your code can read or unpack it. The CLI does not convert model checkpoints.
@@ -118,7 +119,7 @@ into the WDL as `ghcr.io/ORG/IMAGE@sha256:...`. Mutable tags and ARM-only images
 not accepted. Include `bash` and `tar` for execution and optional file extraction.
 
 Run your prediction command against development inputs before submitting. Verify
-weights loading and correctly named TIFF outputs. The CLI checks public image
+weights loading and correctly named uint8 PNG outputs. The CLI checks public image
 access and `linux/amd64` support, but cannot prove your model will execute.
 See the [container guide](container-images.md).
 
@@ -290,11 +291,11 @@ challenge rules and queue quotas before resubmitting.
 ## Optional: run the public benchmark
 
 The participant package includes the benchmark used by organizers. It reads an
-already merged `image-results.jsonl` file of per-image metrics, not prediction TIFFs.
+already merged `image-results.jsonl` file of per-image metrics, not prediction PNGs.
 If you have a compatible results file, run:
 
 ```sh
-python -m dream_participant.benchmarking.evaluation \
+python -m anvil_dream_participant.benchmarking.evaluation \
   --image-results image-results.jsonl \
   --comparison-report comparison-report.json \
   --aggregate evaluation-aggregate.json \
@@ -303,7 +304,7 @@ python -m dream_participant.benchmarking.evaluation \
 
 See the [benchmark guide](benchmark.md)
 for the exact JSONL schema and scoring formula. Official targets are private.
-Prediction TIFFs alone cannot recreate official metrics. Running this benchmark
+Prediction PNGs alone cannot recreate official metrics. Running this benchmark
 does not require the organizer package.
 
 ## Troubleshooting

@@ -2,7 +2,7 @@
 
 `anvil-dream-participant` is a standalone Python distribution for submitting
 participant-authored WDL workflows. It installs the `anvil-dream-participant` command and the public
-`dream_participant` modules, including the runnable benchmark implementation. It does not
+`anvil_dream_participant` modules, including the runnable benchmark implementation. It does not
 include, import, or install the DREAM organizer package, and it does not read runtime assets
 from the parent repository.
 
@@ -75,7 +75,7 @@ not a dependency.
 The public module can validate a participant WDL without importing organizer code:
 
 ```python
-from dream_participant.workflows.wdl import parse_participant_workflow
+from anvil_dream_participant.workflows.wdl import parse_participant_workflow
 
 workflow = parse_participant_workflow("participant.wdl")
 ```
@@ -87,7 +87,7 @@ required. For an optional independent check with Cromwell WOMtool, see the
 ## Run the benchmark
 
 The standalone participant package includes the exact benchmark implementation used by the
-organizer. Its Python entrypoint is [`dream_participant.benchmarking.evaluation`](../benchmarking/evaluation.py);
+organizer. Its Python entrypoint is [`anvil_dream_participant.benchmarking.evaluation`](../benchmarking/evaluation.py);
 the corresponding organizer task is `BenchmarkEvaluation` in
 `organizer/workflows/templates/benchmark.wdl` in the [source repository](https://github.com/cm4ai-anvil-dream-challenge/cm4ai-anvil-dream-tools).
 The [benchmark guide](benchmark.md) defines the complete input contract, command, score
@@ -103,14 +103,14 @@ Run it locally with an already merged `image-results.jsonl` file:
 
 ```sh
 python -m pip install --upgrade anvil-dream-participant
-python -m dream_participant.benchmarking.evaluation \
+python -m anvil_dream_participant.benchmarking.evaluation \
   --image-results image-results.jsonl \
   --comparison-report comparison-report.json \
   --aggregate evaluation-aggregate.json \
   --output score-result.json
 ```
 
-Raw grading and shard gathering remain trusted organizer tasks. Current target TIFFs are private,
+Raw grading and shard gathering remain trusted organizer tasks. Current target images are private,
 so participants can run the benchmark only when they have the already merged JSONL input; WDL
 source visibility alone does not make raw grading runnable. A future self-run route needs a
 separately published participant-runnable raw-grading WDL and approved target inputs, followed by

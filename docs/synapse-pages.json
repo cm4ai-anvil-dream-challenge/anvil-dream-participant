@@ -58,7 +58,7 @@
       "etag": "3dc86870-1f92-4531-9e46-a91d430fd699",
       "modified_on": "2026-10-09T18:51:41.229Z",
       "source_sha256": "0862fa0ba64c59c0ea8d2017a8a8cc3b8c9bdc921f4a3fab852b7ca37a33db41",
-      "imported_sha256": "bbe5ced13843ee1e75b543afe10097f16820766554ba0efae8e793da0cb67939"
+      "imported_sha256": "61c1b2845df731dba7d74dde1c8f420d9b3dbb3f11f87716b02b8b16fb89b55c"
     },
     {
       "source": "docs/cli.md",
@@ -68,7 +68,7 @@
       "etag": "4ec84bb0-7dd6-4118-b2eb-3811ec2e21c4",
       "modified_on": "2026-10-09T19:55:10.567Z",
       "source_sha256": "73aeb918fac79e4e1ee64208559b71fdb41e1ff1896c0f14016f483a37863329",
-      "imported_sha256": "695635ac269962caa405bdc1c695bf06eccd7a5c561973be407484f750ac2fe2"
+      "imported_sha256": "434c22e53268e2a23257887e0f3fdacbbfe8ba0962983e320f0a9672a252fd38"
     },
     {
       "source": "docs/container-images.md",
@@ -88,7 +88,7 @@
       "etag": "6dc32dd4-7424-4d23-aa85-319978953b51",
       "modified_on": "2026-10-09T20:03:17.109Z",
       "source_sha256": "6975dc9947335444808447006fcdef03ab73f5a2b32045c4bd83db1a2de81974",
-      "imported_sha256": "92d04450aabc232eafdcf4382c907541deee6570c0b4c253b3aeaddd7ea12aab"
+      "imported_sha256": "203f8943f597224249471d0f89be6b64cb488790d4327e6ceb72fe2f5362c4bc"
     },
     {
       "source": "docs/proticelli.md",
@@ -98,7 +98,7 @@
       "etag": "06d7df77-c184-4f64-9e5f-64491875fc08",
       "modified_on": "2026-10-09T19:15:19.934Z",
       "source_sha256": "6e7723ebb22e497462b67edd2ce26c0fa61e03907907e1293004eab208cc1e37",
-      "imported_sha256": "43c151c95298a84f1ad1bb9149ddc3330d3cb2e6accdc9e56ef63deed1d7a87d"
+      "imported_sha256": "e21fe8cb3368875130957b6ecd8c7e09c476657dd351ce82343c5d438ab14026"
     },
     {
       "source": "docs/reading-list.md",
@@ -118,7 +118,7 @@
       "etag": "7f5bc4af-1b07-4c6f-a095-0d6204fc37af",
       "modified_on": "2026-10-09T20:03:18.548Z",
       "source_sha256": "dc0698586c52955c9f39304fdc40f34c1ec2ee79f19d7276354a244de59d05bb",
-      "imported_sha256": "c778a2ad3db9624422c6ca5ecab8d794e3b5c3844cbd5922b05580e70bcf6a32"
+      "imported_sha256": "84faa7ba8cfd0a96992c702314d3232fe1f01f1e9ac32fd8fcfc2b50bf74918a"
     }
   ],
   "attachments": [
@@ -146,5 +146,10 @@
       "synapse": "guide predates current normalization and scaling",
       "current_implementation": "explicit ImageNormalizer and nucleus-reference scaling"
     }
+  ],
+  "repository_updates": [
+    "Updated Python imports and published package install commands.",
+    "Updated prediction contract and WDL examples to uint8 PNG.",
+    "Documented current ProtiCelli preprocessing and intensity scaling."
   ]
 }

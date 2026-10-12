@@ -3,7 +3,7 @@
 The interface is independent of the model framework. Your container owns the
 model code, weight format, and prediction command. ProtiCelli is an example
 adapter, not a required dependency. Other models must implement the same
-three-image FASTA input and prediction TIFF output contract. The current
+three-image FASTA input and uint8 PNG prediction output contract. The current
 execution policy uses one NVIDIA L4 on `g2-standard-8` for every participant.
 
 Each submission is one deterministic, uncompressed TAR entity in the Synapse
@@ -104,28 +104,29 @@ The manifest is a JSON array:
 [
   {
     "prediction_id": "image-0001",
-    "microtubules_image": "/cromwell_root/path/microtubules.tiff",
-    "nucleus_image": "/cromwell_root/path/nucleus.tiff",
-    "er_image": "/cromwell_root/path/er.tiff",
+    "microtubules_image": "/cromwell_root/path/microtubules.png",
+    "nucleus_image": "/cromwell_root/path/nucleus.png",
+    "er_image": "/cromwell_root/path/er.png",
     "fasta_file": "/cromwell_root/path/sequence.fasta",
     "mask_image": "/cromwell_root/path/mask.png"
   }
 ]
 ```
 
-Write each prediction as `<prediction_id>.tiff`. Do not infer sequence data
+Write each prediction as `<prediction_id>.png`. Do not infer sequence data
 from filenames; the organizer supplies an explicit FASTA file. The organizer
 reconstructs outputs by prediction ID because the WDL `glob()` result order is
 not an identity guarantee. The organizer stores each standalone 2D target image
 privately and exposes it only to the trusted grading workflow.
 
-Source images can be float32 TIFFs or 8-bit grayscale PNGs, each 512 by 512.
-For PNG datasets, convert channel pixels to float32 and divide by 255 before
-prediction. Organizer grading uses the same normalization for the private
-protein PNG. Predictions remain float32 TIFFs. A mask is a separate binary
-image available to the participant model; it does not change the scoring
-region. The ProtiCelli reference adapter accepts and validates masks while
-retaining its three-channel model input.
+Source images use uint8 pixels, each 512 by 512. Prediction files must be
+single-channel, 8-bit grayscale PNGs of the same shape, with values in 0–255.
+Model-specific input normalization belongs in your container. The organizer
+compares predictions and private targets in their native uint8 intensity scale,
+using float64 arithmetic for metric calculation. Do not divide output pixels by
+255 before writing the PNG. A mask is a separate binary image available to the
+participant model; it does not change the scoring region. The ProtiCelli
+reference adapter validates masks while retaining its three-channel model input.
 
 The shell body can use multiple commands, pipelines, loops, and conditionals.
 The organizer passes the whole body to one `bash -e` process, so one timeout
