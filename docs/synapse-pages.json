@@ -41,16 +41,6 @@
       "imported_sha256": "ea40f8c929408c51ba17f3ed8f41b2b7456ca9e108233f17b93c209bddea541c"
     },
     {
-      "source": "docs/news-and-timeline.md",
-      "title": "News & Timeline",
-      "wiki_id": "640955",
-      "parent_wiki_id": "639954",
-      "etag": "f381e339-335d-41ff-8f4e-1d069d631e7d",
-      "modified_on": "2026-10-07T21:40:07.115Z",
-      "source_sha256": "74306d149f84be07917d5bc204cddb0b221df4a8b1fb213e3a51c3fba5783767",
-      "imported_sha256": "2bb35a43935b5be85203aa2840ea1c899dc124ac59d6caba894610b6d517f4ae"
-    },
-    {
       "source": "docs/challenge.md",
       "title": "The Challenge",
       "wiki_id": "642240",
@@ -78,7 +68,7 @@
       "etag": "4ec84bb0-7dd6-4118-b2eb-3811ec2e21c4",
       "modified_on": "2026-10-09T19:55:10.567Z",
       "source_sha256": "73aeb918fac79e4e1ee64208559b71fdb41e1ff1896c0f14016f483a37863329",
-      "imported_sha256": "a44444e50a8dbdb104487fad09e8e568ef496ea80aa7d89c44b9b8d41ed08c04"
+      "imported_sha256": "695635ac269962caa405bdc1c695bf06eccd7a5c561973be407484f750ac2fe2"
     },
     {
       "source": "docs/container-images.md",
@@ -98,7 +88,7 @@
       "etag": "6dc32dd4-7424-4d23-aa85-319978953b51",
       "modified_on": "2026-10-09T20:03:17.109Z",
       "source_sha256": "6975dc9947335444808447006fcdef03ab73f5a2b32045c4bd83db1a2de81974",
-      "imported_sha256": "baf48e2d1f313dc3690a738e4453c037d6240d77f7151f921746f9a0d41c8585"
+      "imported_sha256": "92d04450aabc232eafdcf4382c907541deee6570c0b4c253b3aeaddd7ea12aab"
     },
     {
       "source": "docs/proticelli.md",

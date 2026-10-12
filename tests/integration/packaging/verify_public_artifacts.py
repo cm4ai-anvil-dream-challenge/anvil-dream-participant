@@ -18,7 +18,6 @@ PARTICIPANT_GUIDES = {
     "docs/overview.md",
     "docs/challenge-rules.md",
     "docs/motivation-and-background.md",
-    "docs/news-and-timeline.md",
     "docs/challenge.md",
     "docs/benchmark.md",
     "docs/cli.md",

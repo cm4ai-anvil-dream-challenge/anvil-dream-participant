@@ -33,7 +33,6 @@ credentials does not establish that it is approved for public participant docs.
 | [Challenge Overview](overview.md) | [Wiki 639954](https://www.synapse.org/Synapse:syn74338981/wiki/639954) |
 | [Challenge Rules](challenge-rules.md) | [Wiki 642246](https://www.synapse.org/Synapse:syn74338981/wiki/642246) |
 | [Motivation & Background](motivation-and-background.md) | [Wiki 640956](https://www.synapse.org/Synapse:syn74338981/wiki/640956) |
-| [News & Timeline](news-and-timeline.md) | [Wiki 640955](https://www.synapse.org/Synapse:syn74338981/wiki/640955) |
 | [The Challenge](challenge.md) | [Wiki 642240](https://www.synapse.org/Synapse:syn74338981/wiki/642240) |
 | [Participant Benchmark](benchmark.md) | [Wiki 643842](https://www.synapse.org/Synapse:syn74338981/wiki/643842) |
 | [Participant CLI](cli.md) | [Wiki 643841](https://www.synapse.org/Synapse:syn74338981/wiki/643841) |

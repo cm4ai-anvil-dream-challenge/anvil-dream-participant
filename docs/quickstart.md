@@ -131,7 +131,7 @@ virtual environment. These commands work from any directory:
 python3.12 --version
 python3.12 -m venv "$HOME/dream-participant-venv"
 . "$HOME/dream-participant-venv/bin/activate"
-PIP_USER=false python -m pip install anvil-dream-participant==0.1.2
+PIP_USER=false python -m pip install anvil-dream-participant==0.2.0
 anvil-dream-participant --help
 anvil-dream-participant submit --help
 anvil-dream-participant submit-anvil --help

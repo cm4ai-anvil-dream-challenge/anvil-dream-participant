@@ -44,7 +44,7 @@ Install the participant package in Python 3.12 or newer:
 ```sh
 python -m venv .venv
 . .venv/bin/activate
-python -m pip install anvil-dream-participant
+python -m pip install --upgrade anvil-dream-participant
 anvil-dream-participant --help
 anvil-dream-participant submit --help
 anvil-dream-participant submit-anvil --help
@@ -102,7 +102,7 @@ formula, outputs, and current limits.
 Run it locally with an already merged `image-results.jsonl` file:
 
 ```sh
-python -m pip install anvil-dream-participant
+python -m pip install --upgrade anvil-dream-participant
 python -m dream_participant.benchmarking.evaluation \
   --image-results image-results.jsonl \
   --comparison-report comparison-report.json \
