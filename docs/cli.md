@@ -89,7 +89,7 @@ required. For an optional independent check with Cromwell WOMtool, see the
 The standalone participant package includes the exact benchmark implementation used by the
 organizer. Its Python entrypoint is [`anvil_dream_participant.benchmarking.evaluation`](../benchmarking/evaluation.py);
 the corresponding organizer task is `BenchmarkEvaluation` in
-`organizer/workflows/templates/benchmark.wdl` in the [source repository](https://github.com/cm4ai-anvil-dream-challenge/cm4ai-anvil-dream-tools).
+`organizer/workflows/templates/benchmark.wdl` in the source repository.
 The [benchmark guide](benchmark.md) defines the complete input contract, command, score
 formula, outputs, and current limits.
 

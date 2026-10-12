@@ -58,7 +58,7 @@
       "etag": "3dc86870-1f92-4531-9e46-a91d430fd699",
       "modified_on": "2026-10-09T18:51:41.229Z",
       "source_sha256": "0862fa0ba64c59c0ea8d2017a8a8cc3b8c9bdc921f4a3fab852b7ca37a33db41",
-      "imported_sha256": "61c1b2845df731dba7d74dde1c8f420d9b3dbb3f11f87716b02b8b16fb89b55c"
+      "imported_sha256": "1cbb875c266fbe0347b671b7c3b009a7f337dfe72046f27608cda12c2570d10e"
     },
     {
       "source": "docs/cli.md",
@@ -68,7 +68,7 @@
       "etag": "4ec84bb0-7dd6-4118-b2eb-3811ec2e21c4",
       "modified_on": "2026-10-09T19:55:10.567Z",
       "source_sha256": "73aeb918fac79e4e1ee64208559b71fdb41e1ff1896c0f14016f483a37863329",
-      "imported_sha256": "434c22e53268e2a23257887e0f3fdacbbfe8ba0962983e320f0a9672a252fd38"
+      "imported_sha256": "2863298b71d5ec10cdbacda2f0f3c4ed9225d7fc879f4dc0d71c4adc34c66361"
     },
     {
       "source": "docs/container-images.md",
@@ -98,7 +98,7 @@
       "etag": "06d7df77-c184-4f64-9e5f-64491875fc08",
       "modified_on": "2026-10-09T19:15:19.934Z",
       "source_sha256": "6e7723ebb22e497462b67edd2ce26c0fa61e03907907e1293004eab208cc1e37",
-      "imported_sha256": "e21fe8cb3368875130957b6ecd8c7e09c476657dd351ce82343c5d438ab14026"
+      "imported_sha256": "33714574506b42ba84ae1193fa8163b452e8937914c5989ef0c1d36f8de71a15"
     },
     {
       "source": "docs/reading-list.md",

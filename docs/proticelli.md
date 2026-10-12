@@ -55,7 +55,7 @@ reference/human_gene_map.zip
 
 The weights ZIP used in the recorded TEST run is 3,878,681,126 bytes with SHA-256
 `ad05433c000837be1d2b83d9ddd4e29d813d49ea0b42cb463dc79c27b87762cd`. The organizer
-retrieves it with the [run handoff manifest](https://github.com/cm4ai-anvil-dream-challenge/cm4ai-anvil-dream-tools/blob/feat/real-data-workflow-performance/organizer/examples/proticelli/recorded-test-run.json), verifies
+retrieves it with the run handoff manifest, verifies
 the outer ZIP and all six checkpoint files, and transfers it to the participant through the
 approved private handoff. A participant can then submit the exact ZIP directly; they do not
 need the organizer's Cloud Storage access, your machine's Downloads directory, or the source
