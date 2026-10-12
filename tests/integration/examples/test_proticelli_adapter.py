@@ -73,6 +73,10 @@ class ProtiCelliAdapterTests(unittest.TestCase):
             )
             with (
                 patch.dict(sys.modules, {"proticelli": SimpleNamespace(Model=Model)}),
+                patch.object(module.proticelli_images, "normalize_inputs", side_effect=lambda images: (
+                    np.stack((np.full(images.shape[:-1], -1),
+                              np.ones(images.shape[:-1]), np.ones(images.shape[:-1])), axis=-1),
+                    np.full(len(images), 128))),
                 patch.object(MODEL, "_ranked_blast_hits", return_value=hits) as rank_hits,
                 patch.object(MODEL, "_blast_database_target_count", return_value=3),
             ):
@@ -89,7 +93,7 @@ class ProtiCelliAdapterTests(unittest.TestCase):
                 tuple(path.name for path in outputs), ("z-view-2.png", "a-view-1.png")
             )
             self.assertEqual([np.asarray(Image.open(path)).shape for path in outputs], [(512, 512)] * 2)
-            self.assertEqual(float(np.asarray(Image.open(outputs[1])).max()), 196.0)
+            self.assertEqual(float(np.asarray(Image.open(outputs[1])).max()), 128.0)
             rank_hits.assert_called_once()
             self.assertEqual(rank_hits.call_args.kwargs["target_count"], 3)
 
@@ -98,7 +102,7 @@ class ProtiCelliAdapterTests(unittest.TestCase):
         self.assertEqual(images.shape, (2, 512, 512, 3))
         for actual, expected in zip(
             [float(images[0, 0, 0, channel]) for channel in range(3)],
-            [0, 128, 255],
+            [-1, 1, 1],
             strict=True,
         ):
             self.assertAlmostEqual(actual, expected)

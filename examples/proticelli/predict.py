@@ -96,8 +96,9 @@ def predict_shard(
             )
 
         for batch in proticelli_images.iter_image_batches(inputs, sequences_by_path, selections):
+            normalized, nucleus_scales = proticelli_images.normalize_inputs(batch.images)
             result = model.predict(
-                batch.images,
+                normalized,
                 protein_names=tuple(item.protein_name for item in batch.proteins),
                 batch_size=batch_size,
                 num_inference_steps=inference_steps,
@@ -114,8 +115,8 @@ def predict_shard(
             expected_shape = (len(batch.inputs), 512, 512)
             if predictions.shape != expected_shape:
                 raise ValueError(f"ProtiCelli predictions must have shape {list(expected_shape)}")
-            for item, selection, prediction in zip(
-                batch.inputs, batch.proteins, predictions, strict=True
+            for item, selection, prediction, nucleus_scale in zip(
+                batch.inputs, batch.proteins, predictions, nucleus_scales, strict=True
             ):
                 sequence = sequences_by_path[item.fasta_file]
                 output_paths.append(
@@ -125,6 +126,7 @@ def predict_shard(
                         prediction,
                         selection,
                         sequence,
+                        nucleus_scale,
                     )
                 )
     return tuple(output_paths)

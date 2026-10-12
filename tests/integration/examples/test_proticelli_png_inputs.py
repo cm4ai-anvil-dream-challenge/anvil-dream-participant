@@ -22,7 +22,30 @@ IMAGES = load_participant_module("proticelli_images.py", "proticelli_images")
 
 
 class ProtiCelliPngInputsTests(unittest.TestCase):
-    def test_uint8_export_matches_native_ceiling_and_preserves_provenance(self):
+    def test_normalization_retains_robust_reference_and_empty_channel_fallback(self):
+        from unittest.mock import MagicMock
+
+        raw = np.zeros((3, 512, 512, 3), dtype=np.uint8)
+        raw[0, ..., 1] = 100
+        raw[0, 0, 0, 1] = 255
+        raw[1, ..., 0] = 80
+        normalized = np.full((3, 512, 512, 4), -1, dtype=np.float32)
+        normalized[..., 2] = 1
+        normalizer = MagicMock(percentile=99.95)
+        normalizer.transform.return_value = normalized
+        factory = MagicMock(return_value=normalizer)
+        with patch.dict(sys.modules, {
+            "proticelli.data.preprocessing": SimpleNamespace(ImageNormalizer=factory),
+        }):
+            images, scales = IMAGES.normalize_inputs(raw)
+        factory.assert_called_once_with(bit_depth=8)
+        stack = normalizer.transform.call_args.args[0]
+        np.testing.assert_array_equal(stack[..., [0, 2, 3]], raw)
+        self.assertTrue(np.all(stack[..., 1] == 0))
+        np.testing.assert_array_equal(scales, [100, 80, 0])
+        np.testing.assert_array_equal(images[0, 0, 0], [-1, 1, -1])
+
+    def test_uint8_export_restores_nucleus_scale_and_preserves_provenance(self):
         selection = SimpleNamespace(
             protein_name="TUBB", accession="P00001", hit_rank=0, bitscore=100,
             evalue=1e-20, percent_identity=99,
@@ -30,19 +53,19 @@ class ProtiCelliPngInputsTests(unittest.TestCase):
         with TemporaryDirectory() as temporary:
             root = Path(temporary)
             pixels = np.zeros((512, 512), dtype=np.float32)
-            pixels[0, :6] = [-0.1, 0, 0.5, 1.0, 1.3, 1.4]
-            output = IMAGES._write_prediction(root, "136", pixels, selection, "MAAA")
+            pixels[0, :8] = [-0.1, 0, 0.5, 1.0, 1.3, 1.4, 0.506, 3.0]
+            output = IMAGES._write_prediction(root, "136", pixels, selection, "MAAA", 100)
             with Image.open(output) as image:
                 self.assertEqual(image.format, "PNG")
                 self.assertEqual(image.mode, "L")
                 actual = np.asarray(image)
             self.assertEqual(actual.dtype, np.dtype("uint8"))
-            np.testing.assert_array_equal(actual[0, :6], [0, 0, 98, 196, 255, 255])
+            np.testing.assert_array_equal(actual[0, :8], [0, 0, 50, 100, 130, 140, 51, 255])
             with Image.open(output) as image:
                 self.assertEqual(json.loads(image.info["provenance"])["prediction_id"], "136")
             pixels[0, 0] = np.nan
             with self.assertRaisesRegex(ValueError, "invalid prediction"):
-                IMAGES._write_prediction(root, "bad", pixels, selection, "MAAA")
+                IMAGES._write_prediction(root, "bad", pixels, selection, "MAAA", 100)
             self.assertFalse((root / "bad.png").exists())
 
     def test_prediction_selects_the_strongest_supported_sequence_across_isoforms(self):
@@ -78,6 +101,8 @@ class ProtiCelliPngInputsTests(unittest.TestCase):
             }]))
             with (
                 patch.dict(sys.modules, {"proticelli": SimpleNamespace(Model=Model)}),
+                patch.object(IMAGES, "normalize_inputs", side_effect=lambda images: (
+                    images.astype(np.float32) / 127.5 - 1, np.full(len(images), 255))),
                 patch.object(MODEL, "unpack_weights", return_value=SimpleNamespace(
                     model_root=root, search_roots=(root,))),
                 patch.object(MODEL, "_model_directories", return_value=(root, root)),

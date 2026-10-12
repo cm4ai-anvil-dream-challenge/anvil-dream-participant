@@ -31,7 +31,7 @@ task Predict {
   >>>
 
   runtime {
-    docker: "quay.io/anvil_dream/blast-proticelli-example@sha256:59c9a92a5b0b73f1298bf4eac1b9a02d57d505d349c9cd71f43c99f5314d8bf8"
+    docker: "quay.io/anvil_dream/blast-proticelli-example@sha256:9e03517cc45ac0ad72386620d34bf24a54a12a297f65ab79a2c2ac9a9debfa18"
   }
 
   output {

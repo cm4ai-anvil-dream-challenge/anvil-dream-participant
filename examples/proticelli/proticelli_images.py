@@ -25,6 +25,28 @@ class ImageBatch:
     proteins: tuple[ProteinSelection, ...]
 
 
+def normalize_inputs(images: Any) -> tuple[Any, Any]:
+    """Apply upstream training normalization and retain its per-cell count scale."""
+    import numpy as np
+    from proticelli.data.preprocessing import ImageNormalizer
+
+    normalizer = ImageNormalizer(bit_depth=8)
+    stack = np.zeros((*images.shape[:-1], 4), dtype=np.float32)
+    stack[..., [0, 2, 3]] = images
+    scales = []
+    for image in stack:
+        clip = min(float(np.percentile(image[..., 2], normalizer.percentile)), 255.0)
+        if clip <= 0:
+            clip = min(float(image.max()), 255.0)
+        clipped = np.clip(image, 0, clip)
+        scale = float(clipped[..., 2].max())
+        if scale <= 0 and clip > 0:
+            scale = max(float(clipped.max()), 1.0)
+        scales.append(scale)
+    normalized = normalizer.transform(stack)
+    return normalized[..., [0, 2, 3]], np.asarray(scales, dtype=np.float32)
+
+
 @lru_cache(maxsize=64)
 def _read_image(path: Path) -> Any:
     import numpy as np
@@ -98,6 +120,7 @@ def _write_prediction(
     image: Any,
     selection: ProteinSelection,
     sequence: str,
+    nucleus_scale: float,
 ) -> Path:
     import numpy as np
     from PIL import Image
@@ -106,6 +129,8 @@ def _write_prediction(
     prediction = np.asarray(image, dtype=np.float32)
     if tuple(prediction.shape) != _PREDICTION_SHAPE or not np.isfinite(prediction).all():
         raise ValueError(f"ProtiCelli returned an invalid prediction for {prediction_id}")
+    if not np.isfinite(nucleus_scale) or not 0 <= nucleus_scale <= 255:
+        raise ValueError("nucleus scale must be finite and between 0 and 255")
     sequence_digest = hashlib.sha256(sequence.encode("ascii")).hexdigest()
     provenance = {
         "prediction_id": prediction_id,
@@ -116,9 +141,11 @@ def _write_prediction(
         "bitscore": selection.bitscore,
         "evalue": selection.evalue,
         "percent_identity": selection.percent_identity,
+        "intensity_scaling": "nucleus_reference",
+        "nucleus_scale": float(nucleus_scale),
     }
     output = destination / f"{prediction_id}.png"
-    encoded = np.clip(prediction / np.float32(1.3) * np.float32(255), 0, 255).astype(np.uint8)
+    encoded = np.rint(np.clip(prediction * np.float32(nucleus_scale), 0, 255)).astype(np.uint8)
     metadata = PngInfo()
     metadata.add_text("provenance", json.dumps(provenance, sort_keys=True))
     Image.fromarray(encoded).save(output, pnginfo=metadata)

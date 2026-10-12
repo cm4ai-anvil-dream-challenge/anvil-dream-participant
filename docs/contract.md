@@ -120,9 +120,9 @@ not an identity guarantee. The organizer stores each standalone 2D target image
 privately and exposes it only to the trusted grading workflow.
 
 Source images are 8-bit grayscale PNGs, each 512 by 512.
-Pass uint8 inputs directly to ProtiCelli for internal normalization. Match its
-native uint8 export: divide predictions by 1.3, multiply by 255, clip to [0, 255],
-and cast to uint8, truncating fractions. Write uint8 PNGs. Organizer grading compares stored 0–255 pixel
+The ProtiCelli example explicitly applies upstream ImageNormalizer to inputs.
+It multiplies predictions by the retained nucleus reference, clips to [0, 255],
+rounds to the nearest integer, and casts to uint8. Write uint8 PNGs. Organizer grading compares stored 0–255 pixel
 values without normalization. A mask is a separate binary
 image available to the participant model; it does not change the scoring
 region. The ProtiCelli reference adapter accepts and validates masks while

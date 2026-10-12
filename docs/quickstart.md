@@ -93,8 +93,9 @@ a filename.
 Write one two-dimensional `512 x 512` uint8 PNG per input record, named
 exactly `<prediction_id>.png`. Put these files in `predictions/` and return them
 through the WDL output. Source images are 8-bit grayscale PNGs.
-Pass uint8 inputs directly to ProtiCelli. Export predictions using its native
-conversion: divide by 1.3, multiply by 255, clip to [0, 255], and cast to uint8. Private target
+The ProtiCelli adapter explicitly applies upstream ImageNormalizer. It exports
+predictions by multiplying by the retained nucleus reference, clipping to
+[0, 255], rounding to the nearest integer, and casting to uint8. Private target
 images are available only to organizer grading.
 
 Prepare one weights file in the format your model expects. An archive is acceptable
