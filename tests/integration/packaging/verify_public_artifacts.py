@@ -15,12 +15,13 @@ PARTICIPANT_GUIDES = {
     "docs/contract.md",
     "docs/container-images.md",
     "docs/proticelli.md",
+    "docs/participant-releases.md",
     "benchmarking/README.md",
     "examples/proticelli/README.md",
 }
 
 
-SDIST_MAINTAINER_FILES = {"Makefile", "scripts/release.py", "docs/participant-releases.md"}
+SDIST_MAINTAINER_FILES = {"Makefile", "scripts/release.py"}
 
 
 def _public_module(name: str, archive_kind: str) -> bool:

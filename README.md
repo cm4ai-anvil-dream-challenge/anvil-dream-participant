@@ -16,6 +16,7 @@ is available without GitHub repository access.
 - [Container images](docs/container-images.md) covers publishing and digest pinning.
 - [Benchmark guide](benchmarking/README.md) defines metrics and local benchmarking.
 - [ProtiCelli example](docs/proticelli.md) explains the reference model adapter.
+- [Participant releases](docs/participant-releases.md) covers maintainer setup and PyPI publishing.
 
 These guides ship with the participant package. Organizer and maintainer documentation
 is maintained separately in the [organizer repository](https://github.com/cm4ai-anvil-dream-challenge/cm4ai-anvil-dream-tools/tree/main/organizer/docs).
