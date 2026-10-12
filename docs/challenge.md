@@ -1,0 +1,7 @@
+# The Challenge
+
+In this challenge, teams will develop models that predict subcellular protein localization in microscope images. Subcellular localization is dynamic and cell-type specific: proteins can re-localize as cells differentiate, respond to perturbation, or transition between states, and these shifts often carry functional consequences. Of the roughly 20,000 proteins in the human proteome, only a subset have been systematically imaged across such conditions, leaving substantial room for models trained on large public resources like the Human Protein Atlas to generalize to new cell states and treatments. Accurate predictions could extend experimentally generated cell maps to proteins and conditions that aren't feasible to image directly.
+
+**Challenge task:**  Given an HGNC protein ID and reference channels of microscope images (nuclear, microtubule, and ER) generate a microscope image of the protein of interest (POI) in the cells.
+
+Submissions will be scored using a combination of standard image similarity metrics and biologically-grounded measures. Rather than relying solely on pixel-level metrics such as SSIM or FID, we plan to emphasize biological fidelity by comparing SubCell features, a vision foundation model trained on HPA imaging data, between generated and ground-truth images. Additional metrics may be introduced as evaluation design is finalized.

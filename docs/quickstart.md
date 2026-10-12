@@ -12,9 +12,9 @@ Storage from an AnVIL RStudio VM. Both use the standalone participant package.
 
 1. Create or sign in to your [Synapse account](https://www.synapse.org/).
 2. Complete [Synapse Certified User status](https://www.synapse.org/#!Profile:certified).
-3. Open the [challenge home page](https://www.synapse.org/Synapse:syn74338981/wiki/639954)
+3. Open the [challenge home page](overview.md)
    and use **Register**. Complete the requirements shown on the site and review the
-   [challenge rules](https://www.synapse.org/Synapse:syn74338981/wiki/642246).
+   [challenge rules](challenge-rules.md).
    A pending registration request must be approved before submission.
 4. Sign in to [Terra](https://app.terra.bio/) with the Google account you will use
    for submission. Complete registration and any profile or terms prompts.
@@ -31,7 +31,7 @@ team is eligible to submit.
 
 ## 2. Prepare your model and WDL
 
-Read the [submission format](https://www.synapse.org/Synapse:syn74338981/wiki/643828)
+Read the [submission format](contract.md)
 and the [current participant contract](contract.md).
 Your model can use any framework that implements the interface. ProtiCelli is an
 example, not a required dependency.
@@ -70,7 +70,7 @@ task Predict {
   >>>
 
   output {
-    Array[File] predictions = glob("predictions/*.png")
+    Array[File] predictions = glob("predictions/*.tiff")
   }
 
   runtime {
@@ -90,12 +90,10 @@ FASTA file. The optional `mask_image` receives a cell mask when available. Keep
 localized paths. Do not declare a task-level manifest file or infer sequence from
 a filename.
 
-Write one two-dimensional `512 x 512` uint8 PNG per input record, named
-exactly `<prediction_id>.png`. Put these files in `predictions/` and return them
-through the WDL output. Source images are 8-bit grayscale PNGs.
-The ProtiCelli adapter explicitly applies upstream ImageNormalizer. It exports
-predictions by multiplying by the retained nucleus reference, clipping to
-[0, 255], rounding to the nearest integer, and casting to uint8. Private target
+Write one finite, two-dimensional `512 x 512` float32 TIFF per input record, named
+exactly `<prediction_id>.tiff`. Put these files in `predictions/` and return them
+through the WDL output. Source images may be float32 TIFFs or 8-bit grayscale PNGs.
+Convert PNG pixels to float32 and divide by 255 before prediction. Private target
 images are available only to organizer grading.
 
 Prepare one weights file in the format your model expects. An archive is acceptable
@@ -120,7 +118,7 @@ into the WDL as `ghcr.io/ORG/IMAGE@sha256:...`. Mutable tags and ARM-only images
 not accepted. Include `bash` and `tar` for execution and optional file extraction.
 
 Run your prediction command against development inputs before submitting. Verify
-weights loading and correctly named PNG outputs. The CLI checks public image
+weights loading and correctly named TIFF outputs. The CLI checks public image
 access and `linux/amd64` support, but cannot prove your model will execute.
 See the [container guide](container-images.md).
 
@@ -133,14 +131,14 @@ virtual environment. These commands work from any directory:
 python3.12 --version
 python3.12 -m venv "$HOME/dream-participant-venv"
 . "$HOME/dream-participant-venv/bin/activate"
-PIP_USER=false python -m pip install anvil-dream-participant==0.2.0
+PIP_USER=false python -m pip install anvil-dream-participant==0.1.2
 anvil-dream-participant --help
 anvil-dream-participant submit --help
 anvil-dream-participant submit-anvil --help
 ```
 
 The release includes PNG and optional-mask support. Repository access is not
-required for installation. See the [participant CLI guide](../README.md) for
+required for installation. See the [participant CLI guide](cli.md) for
 installing a source checkout when developing the package.
 
 In AnVIL, use the RStudio Bioconductor VM's **Tools > Terminal > New Terminal**,
@@ -292,20 +290,20 @@ challenge rules and queue quotas before resubmitting.
 ## Optional: run the public benchmark
 
 The participant package includes the benchmark used by organizers. It reads an
-already merged `image-results.jsonl` file of per-image metrics, not prediction PNGs.
+already merged `image-results.jsonl` file of per-image metrics, not prediction TIFFs.
 If you have a compatible results file, run:
 
 ```sh
-python -m anvil_dream_participant.benchmarking.evaluation \
+python -m dream_participant.benchmarking.evaluation \
   --image-results image-results.jsonl \
   --comparison-report comparison-report.json \
   --aggregate evaluation-aggregate.json \
   --output score-result.json
 ```
 
-See the [benchmark guide](../benchmarking/README.md)
+See the [benchmark guide](benchmark.md)
 for the exact JSONL schema and scoring formula. Official targets are private.
-Prediction PNGs alone cannot recreate official metrics. Running this benchmark
+Prediction TIFFs alone cannot recreate official metrics. Running this benchmark
 does not require the organizer package.
 
 ## Troubleshooting

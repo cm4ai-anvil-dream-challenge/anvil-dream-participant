@@ -11,13 +11,29 @@ import zipfile
 
 PARTICIPANT_GUIDES = {
     "README.md",
-    "docs/quickstart.md",
-    "docs/contract.md",
-    "docs/container-images.md",
-    "docs/proticelli.md",
-    "docs/participant-releases.md",
     "benchmarking/README.md",
     "examples/proticelli/README.md",
+    "docs/participant-releases.md",
+    "docs/README.md",
+    "docs/overview.md",
+    "docs/challenge-rules.md",
+    "docs/motivation-and-background.md",
+    "docs/news-and-timeline.md",
+    "docs/participants-and-teams.md",
+    "docs/results.md",
+    "docs/submission.md",
+    "docs/challenge.md",
+    "docs/anvil-compute.md",
+    "docs/data.md",
+    "docs/evaluation.md",
+    "docs/benchmark.md",
+    "docs/cli.md",
+    "docs/container-images.md",
+    "docs/quickstart.md",
+    "docs/proticelli.md",
+    "docs/reading-list.md",
+    "docs/contract.md",
+    "docs/toy-results.md",
 }
 
 
@@ -74,7 +90,10 @@ def _sdist_path_is_public(name: str) -> bool:
             "tests",
         } or parts[0].endswith(".egg-info")
     if parts[0] == "docs":
-        return len(parts) == 2 and "/".join(parts) in (PARTICIPANT_GUIDES | SDIST_MAINTAINER_FILES)
+        relative = "/".join(parts)
+        return relative in PARTICIPANT_GUIDES or relative in {
+            "docs/synapse-pages.json", "docs/assets", "docs/assets/challenge-banner.png",
+        }
     if parts[0] == "scripts":
         return "/".join(parts) in SDIST_MAINTAINER_FILES
     return (

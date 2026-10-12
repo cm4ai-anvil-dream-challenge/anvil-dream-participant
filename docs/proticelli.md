@@ -4,59 +4,27 @@ This example receives one lane of independently pinned, pre-aligned images and
 protein FASTA files. Its `PredictionInput` record contains:
 
 - `prediction_id`: stable identity used to name the prediction
-- `microtubules_image`, `nucleus_image`, and `er_image`: separate 2D uint8
+- `microtubules_image`, `nucleus_image`, and `er_image`: separate 2D float32
   TIFFs or 8-bit grayscale PNGs in ProtiCelli's channel order
 - `fasta_file`: an explicit FASTA containing one or more protein sequences
 - `mask_image`: an optional localized cell mask, validated by the adapter
 
 The public task receives no grading target, target-protein label, or cell-line
-label. The organizer keeps the 2D target image in private storage and supplies it
+label. The organizer keeps the 2D target TIFF in private storage and supplies it
 only to the trusted grading workflow. The images are assumed to be spatially
-aligned already. Stored pixel values are integers from 0 to 255. The adapter explicitly applies upstream ImageNormalizer before inference.
-Model.predict only performs integer range conversion; it does not apply this normalizer.
+aligned already. Their float32 values must be finite and normalized for the
+model; the organizer does not impose one fixed numeric range.
 
 The command placeholder `~{write_json(inputs)}` creates the JSON array of
 localized file paths. Keep it in the command. The prediction script reads each
 FASTA once, resolves each unique sequence once, and chooses the strongest
 supported BLAST match across all sequences in each file. Higher bitscore wins,
 then lower e-value; ties keep FASTA order. It stacks image planes in
-microtubules/nucleus/ER order, and writes `<prediction_id>.png`. It runs local
+microtubules/nucleus/ER order, and writes `<prediction_id>.tiff`. It runs local
 BLAST against the reference database in the weights ZIP, walks hits by score
 until it finds a gene in the model vocabulary, and fails the task explicitly if
 no hit is supported. The selected accession, hit rank, sequence digest, and
-score are stored in each output PNG's provenance text metadata.
-
-## Prediction format and precision
-
-Prediction outputs are **uint8 PNGs**, matching the 8-bit pixel domain of the
-input PNGs and private targets. ProtiCelli computes floating-point predictions;
-the example multiplies them by the per-cell nucleus reference, clips to
-[0, 255], rounds to the nearest integer with NumPy rint, and casts to uint8.
-It writes `<prediction_id>.png` and records the scale in PNG provenance.
-The reference is the maximum nucleus value after clipping at its 99.95th
-percentile. An empty nucleus uses the clipped reference-channel maximum;
-an entirely empty input uses a zero scale. This matches the upstream
-ImageNormalizer reference calculation, rather than the native display exporter.
-It cannot invert the unknown target channel gain used for dim-channel training
-normalization and should not be interpreted as calibrated protein abundance.
-Nonfinite model outputs are rejected before conversion.
-
-Inputs are assembled as MT, empty protein, nucleus, ER; upstream
-ImageNormalizer produces floats in [-1, 1], and channels 0, 2, 3 are passed
-to Model.predict without integer rescaling.
-Grading reads targets and predictions in the original 0–255 domain without
-normalizing either array. It uses float64 arithmetic to avoid unsigned
-subtraction overflow and accumulate metrics accurately. Model weight or compute
-quantization is a separate feature; saving uint8 outputs does not quantize the
-model itself or establish an inference energy saving.
-
-The output contract requires uint8 PNGs, with provenance in a text metadata
-chunk. See the [PNG specification](https://www.w3.org/TR/png-3/).
-
-This replaces the previous float32 prediction contract. Rebuild the participant
-example and organizer grader images together before deploying. Existing
-float32 predictions must not be reused as uint8 results. Previously published
-scores and archives retain their original interpretation.
+score are stored in each output TIFF's description for provenance.
 
 The expected outer weights ZIP layout is:
 
@@ -72,7 +40,7 @@ reference/human_gene_map.zip
 
 The weights ZIP used in the recorded TEST run is 3,878,681,126 bytes with SHA-256
 `ad05433c000837be1d2b83d9ddd4e29d813d49ea0b42cb463dc79c27b87762cd`. The organizer
-retrieves it with the [run handoff manifest](https://github.com/cm4ai-anvil-dream-challenge/cm4ai-anvil-dream-tools/blob/main/organizer/examples/proticelli/recorded-test-run.json), verifies
+retrieves it with the [run handoff manifest](https://github.com/cm4ai-anvil-dream-challenge/cm4ai-anvil-dream-tools/blob/feat/real-data-workflow-performance/organizer/examples/proticelli/recorded-test-run.json), verifies
 the outer ZIP and all six checkpoint files, and transfers it to the participant through the
 approved private handoff. A participant can then submit the exact ZIP directly; they do not
 need the organizer's Cloud Storage access, your machine's Downloads directory, or the source
@@ -123,20 +91,11 @@ files are present. BLAST+ 2.17.0 is installed in the example container. The
 gene map is a TSV with `accession`, `hgnc_symbol`, and optionally
 `ensembl_gene_ids` columns.
 
-A checkpoint/VAE-only archive is incomplete for this example. The weights must
-also contain `reference/human_blast_db.zip` and `reference/human_gene_map.zip`,
-or their extracted database and gene-map files. Installing BLAST in the image
-provides the executable, not the reference database. Before submitting, check
-the archive contents; the historical `artifacts/proticelli-weights.tar` on the
-build host contains only checkpoint/VAE files and must not be used alone.
-
 The checked-in WDL pins the published `quay.io/anvil_dream/blast-proticelli-example`
-image at digest `sha256:9e03517cc45ac0ad72386620d34bf24a54a12a297f65ab79a2c2ac9a9debfa18`.
+image at digest `sha256:59c9a92a5b0b73f1298bf4eac1b9a02d57d505d349c9cd71f43c99f5314d8bf8`.
 The Dockerfile pins ProtiCelli source commit `f894e78d2fbc0530c3637d5f7c457ead0738a5d0`,
-BLAST+ 2.17.0 with a tarball checksum, and a Python 3.12 base image digest.
-ProtiCelli source is downloaded from GitHub codeload with retries and a pinned
-SHA-256 checksum, avoiding a Git clone during the Docker build. Its
-[runtime constraints](../examples/proticelli/model-runtime.constraints.txt) were read from the published image;
+BLAST+ 2.17.0 with a tarball checksum, and a Python 3.12 base image digest. Its
+[runtime constraints](https://github.com/cm4ai-anvil-dream-challenge/cm4ai-anvil-dream-tools/blob/feat/real-data-workflow-performance/participant/examples/proticelli/model-runtime.constraints.txt) were read from the published image;
 they pin PyTorch, torchvision, and the model's Python dependency stack for rebuilds. The
 recorded run retains its original image digest. The current image adds PNG,
 mask, and multi-sequence FASTA support. When building
@@ -154,20 +113,6 @@ docker build --platform linux/amd64 -t proticelli-rebuild-check \
 docker run --rm --platform linux/amd64 --entrypoint python3 \
   proticelli-rebuild-check /opt/proticelli/predict.py --help
 ```
-
-If the source download inside Docker stalls, build with the host cache helper:
-
-```bash
-python3 examples/proticelli/scripts/build_image.py --tag proticelli-rebuild-check
-```
-
-It caches the source archive under `$XDG_CACHE_HOME/proticelli-build`, or
-`~/.cache/proticelli-build` when unset. Each invocation checks the pinned
-SHA-256 and downloads only missing or invalid archives. A temporary build
-context copies the verified archive into Docker, preserving the Dockerfile's
-earlier layers. Other package downloads still use Docker's layer cache.
-The helper uses `sudo -n docker` if the current user cannot access Docker.
-Use `--prepare-only` to populate the archive cache without building.
 
 The example uses batch size 4, 50 inference steps, and seed 0. These are
 model-specific settings, not organizer inputs. The organizer supplies the Terra resource and

@@ -10,3 +10,6 @@ prune venv
 
 include Makefile
 include scripts/release.py
+
+include docs/synapse-pages.json
+recursive-include docs/assets *.png

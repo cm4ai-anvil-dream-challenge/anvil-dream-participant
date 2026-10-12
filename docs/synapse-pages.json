@@ -1,0 +1,230 @@
+{
+  "project_id": "syn74338981",
+  "root_wiki_id": "639954",
+  "imported_at": "2026-10-12T19:43:42.791572+00:00",
+  "formatting_changes": [
+    "Synapse wiki links changed to local Markdown links where imported.",
+    "Synapse heading markers and table-of-contents widget made GitHub-compatible.",
+    "Banner attachment copied locally; registration widget links to its Synapse team.",
+    "Old generated mirror headers removed; source identities retained in this manifest.",
+    "Relative code links adjusted for the docs directory."
+  ],
+  "pages": [
+    {
+      "source": "docs/overview.md",
+      "title": "",
+      "wiki_id": "639954",
+      "parent_wiki_id": null,
+      "etag": "a5bc0acb-b04e-47cc-95c6-0aebdd485ab8",
+      "modified_on": "2026-10-07T20:40:00.398Z",
+      "source_sha256": "c9dac85796d3bd11e8a18848fb304be7af6eb4e2b756303e5734b11cd47532d0",
+      "imported_sha256": "e7a60bc13fc74a439746065c4a1e3d38a906572491aedffd140fdd01d3ba1cf4"
+    },
+    {
+      "source": "docs/challenge-rules.md",
+      "title": "Challenge Rules",
+      "wiki_id": "642246",
+      "parent_wiki_id": "639954",
+      "etag": "a93cc3b9-1f6f-41e3-8db6-8cbe91e517f0",
+      "modified_on": "2026-09-15T21:45:30.669Z",
+      "source_sha256": "d218378c10d17f202b7080b8803ae31d238d681b3bc236a914332658f9c8464b",
+      "imported_sha256": "dd01007f3a566a1d15dcbc0bc9061d588a3dd1386ed58e4694b80555b91cd2b8"
+    },
+    {
+      "source": "docs/motivation-and-background.md",
+      "title": "Motivation & Background",
+      "wiki_id": "640956",
+      "parent_wiki_id": "639954",
+      "etag": "37cf2c12-e558-4d73-a5f6-10416d7259d8",
+      "modified_on": "2026-08-24T23:01:54.767Z",
+      "source_sha256": "adec1daf715b364ec9a867d5ce68302f74853641f746ac1dd5dc830157ecc3eb",
+      "imported_sha256": "ea40f8c929408c51ba17f3ed8f41b2b7456ca9e108233f17b93c209bddea541c"
+    },
+    {
+      "source": "docs/news-and-timeline.md",
+      "title": "News & Timeline",
+      "wiki_id": "640955",
+      "parent_wiki_id": "639954",
+      "etag": "f381e339-335d-41ff-8f4e-1d069d631e7d",
+      "modified_on": "2026-10-07T21:40:07.115Z",
+      "source_sha256": "74306d149f84be07917d5bc204cddb0b221df4a8b1fb213e3a51c3fba5783767",
+      "imported_sha256": "2bb35a43935b5be85203aa2840ea1c899dc124ac59d6caba894610b6d517f4ae"
+    },
+    {
+      "source": "docs/participants-and-teams.md",
+      "title": "Participants & Teams",
+      "wiki_id": "642245",
+      "parent_wiki_id": "639954",
+      "etag": "d9f7a07e-97a3-453a-bee4-d9d3b68bd7ff",
+      "modified_on": "2026-08-20T16:40:52.017Z",
+      "source_sha256": "be466c1a3c413c081214aebe0b3b1d5a50c37dca91dffc3e91d969699825f964",
+      "imported_sha256": "bada920dde7cd24e98f2288b60a04ecf03328628148b424779bfbc11e1c8a9fd"
+    },
+    {
+      "source": "docs/results.md",
+      "title": "Results",
+      "wiki_id": "642816",
+      "parent_wiki_id": "639954",
+      "etag": "dacf17cd-4cc1-4a7e-9531-83a986effa0c",
+      "modified_on": "2026-09-08T19:56:36.557Z",
+      "source_sha256": "6dc5a4faa962cb89531bfa2734bdbaf23460ad433ca4151a03e2634725ebfcea",
+      "imported_sha256": "cdc92a74b767e86e93f79efab06546e6544b940f38392cc247cdc686f64955d1"
+    },
+    {
+      "source": "docs/submission.md",
+      "title": "Submission",
+      "wiki_id": "642241",
+      "parent_wiki_id": "639954",
+      "etag": "3d0bb581-152b-4b75-a1ae-1e3570313bc8",
+      "modified_on": "2026-07-06T16:57:22.593Z",
+      "source_sha256": "103d8c44446b505dd6e9faca624527adb4016724eaec4519ebcd299856c863f9",
+      "imported_sha256": "39baf07a92c53b382f12da47f86dd3a84d7f9b3afb48b27b38366fd4291f016c"
+    },
+    {
+      "source": "docs/challenge.md",
+      "title": "The Challenge",
+      "wiki_id": "642240",
+      "parent_wiki_id": "639954",
+      "etag": "fd35a371-7efb-4394-8fb9-1296b5bed7d8",
+      "modified_on": "2026-08-26T00:53:44.350Z",
+      "source_sha256": "8c48d77dd40c489376407666d47e5f7c2c4bda5e74dd6d2b4311206a9af1a68f",
+      "imported_sha256": "04c558630dbace5b64f78dfd07c4fa055a017bef9e599c0fce4255104a42fe19"
+    },
+    {
+      "source": "docs/anvil-compute.md",
+      "title": "AnVIL Compute",
+      "wiki_id": "642239",
+      "parent_wiki_id": "642240",
+      "etag": "78a18490-9a0c-4507-8aee-0ca0937640cf",
+      "modified_on": "2026-07-10T20:22:06.443Z",
+      "source_sha256": "f987f9cbf4492197d389391bdc891ae51d9a9f97f7379a54b6f6f0dca5f3cbce",
+      "imported_sha256": "96b6f7840ef8a0fa8bed04da3b5fc915b3876b92ecc407375818bc1ec81f99aa"
+    },
+    {
+      "source": "docs/data.md",
+      "title": "Data",
+      "wiki_id": "642238",
+      "parent_wiki_id": "642240",
+      "etag": "e8eb1dcc-9bf6-4f72-8dea-5db7b85842ee",
+      "modified_on": "2026-08-26T18:57:56.267Z",
+      "source_sha256": "e2a54cc0116d6c60c4a36707884d6dc17c29030ce48c29bf6939da3ef7da1872",
+      "imported_sha256": "9184996c5f5b6d012f1097f7ccd2ea97b378c24c8a80fcfbd0ad4657468421f9"
+    },
+    {
+      "source": "docs/evaluation.md",
+      "title": "Evaluation",
+      "wiki_id": "642243",
+      "parent_wiki_id": "642240",
+      "etag": "0aa03efb-dcc8-4bc7-bd93-0c888527b636",
+      "modified_on": "2026-07-06T17:11:40.623Z",
+      "source_sha256": "a29a7778cfa846f96358402d2c0a533776587b809c29264b341c0a3e1914d65e",
+      "imported_sha256": "01ff98b7a8cd614431741e2ced9ce4b8c52c96dac43b713dc368fa21edaad87c"
+    },
+    {
+      "source": "docs/benchmark.md",
+      "title": "Participant Benchmark",
+      "wiki_id": "643842",
+      "parent_wiki_id": "642240",
+      "etag": "3dc86870-1f92-4531-9e46-a91d430fd699",
+      "modified_on": "2026-10-09T18:51:41.229Z",
+      "source_sha256": "0862fa0ba64c59c0ea8d2017a8a8cc3b8c9bdc921f4a3fab852b7ca37a33db41",
+      "imported_sha256": "bbe5ced13843ee1e75b543afe10097f16820766554ba0efae8e793da0cb67939"
+    },
+    {
+      "source": "docs/cli.md",
+      "title": "Participant CLI",
+      "wiki_id": "643841",
+      "parent_wiki_id": "642240",
+      "etag": "4ec84bb0-7dd6-4118-b2eb-3811ec2e21c4",
+      "modified_on": "2026-10-09T19:55:10.567Z",
+      "source_sha256": "73aeb918fac79e4e1ee64208559b71fdb41e1ff1896c0f14016f483a37863329",
+      "imported_sha256": "a44444e50a8dbdb104487fad09e8e568ef496ea80aa7d89c44b9b8d41ed08c04"
+    },
+    {
+      "source": "docs/container-images.md",
+      "title": "Participant Container Images",
+      "wiki_id": "643840",
+      "parent_wiki_id": "642240",
+      "etag": "493b7f6b-5342-45ed-8eb3-958069d59f03",
+      "modified_on": "2026-10-09T19:02:18.319Z",
+      "source_sha256": "87920d01b75c11ed409830d3e918595f6d6643124bc8e7f6b77507124c98f6f7",
+      "imported_sha256": "f4a383082f88fa9526ef27c9865425a04d92f530d010be0926b1e406ffdc992c"
+    },
+    {
+      "source": "docs/quickstart.md",
+      "title": "Participant Quickstart",
+      "wiki_id": "643829",
+      "parent_wiki_id": "642240",
+      "etag": "6dc32dd4-7424-4d23-aa85-319978953b51",
+      "modified_on": "2026-10-09T20:03:17.109Z",
+      "source_sha256": "6975dc9947335444808447006fcdef03ab73f5a2b32045c4bd83db1a2de81974",
+      "imported_sha256": "baf48e2d1f313dc3690a738e4453c037d6240d77f7151f921746f9a0d41c8585"
+    },
+    {
+      "source": "docs/proticelli.md",
+      "title": "ProtiCelli Participant Example",
+      "wiki_id": "643843",
+      "parent_wiki_id": "642240",
+      "etag": "06d7df77-c184-4f64-9e5f-64491875fc08",
+      "modified_on": "2026-10-09T19:15:19.934Z",
+      "source_sha256": "6e7723ebb22e497462b67edd2ce26c0fa61e03907907e1293004eab208cc1e37",
+      "imported_sha256": "43c151c95298a84f1ad1bb9149ddc3330d3cb2e6accdc9e56ef63deed1d7a87d"
+    },
+    {
+      "source": "docs/reading-list.md",
+      "title": "Reading List",
+      "wiki_id": "643278",
+      "parent_wiki_id": "642240",
+      "etag": "09f44222-e899-4ca7-b904-2c73263a4e84",
+      "modified_on": "2026-09-08T21:28:30.441Z",
+      "source_sha256": "fc3b908e6bd69de02453ccf21cfb1d52dad90c06441e638d3ee8b80ed9b53ded",
+      "imported_sha256": "8d464e07e590206b7b734be285fd38fc114952c6e5d228085a0e376ed4986082"
+    },
+    {
+      "source": "docs/contract.md",
+      "title": "Submission Format",
+      "wiki_id": "643828",
+      "parent_wiki_id": "642240",
+      "etag": "7f5bc4af-1b07-4c6f-a095-0d6204fc37af",
+      "modified_on": "2026-10-09T20:03:18.548Z",
+      "source_sha256": "dc0698586c52955c9f39304fdc40f34c1ec2ee79f19d7276354a244de59d05bb",
+      "imported_sha256": "c778a2ad3db9624422c6ca5ecab8d794e3b5c3844cbd5922b05580e70bcf6a32"
+    },
+    {
+      "source": "docs/toy-results.md",
+      "title": "Toy Results",
+      "wiki_id": "642754",
+      "parent_wiki_id": "642241",
+      "etag": "40a5215a-5afc-4115-8e80-1d165cc61bf2",
+      "modified_on": "2026-09-08T19:55:43.354Z",
+      "source_sha256": "ae0020e1826dabdedc592945b1f81cb90d02e08227c43adf0f73481f3c35261d",
+      "imported_sha256": "ae0020e1826dabdedc592945b1f81cb90d02e08227c43adf0f73481f3c35261d"
+    }
+  ],
+  "attachments": [
+    {
+      "source": "docs/assets/challenge-banner.png",
+      "wiki_id": "639954",
+      "file_handle_id": "177505770",
+      "original_filename": "CM4AI_AnVIL_DREAM_banner.png",
+      "sha256": "bbda42c8402870d3e4278493b90ff3a0a31ba541ebc4f624e40ab303542d0368"
+    }
+  ],
+  "known_differences": [
+    {
+      "area": "prediction outputs",
+      "synapse": "float32 TIFF",
+      "current_implementation": "uint8 PNG"
+    },
+    {
+      "area": "Python import name",
+      "synapse": "dream_participant",
+      "current_implementation": "anvil_dream_participant"
+    },
+    {
+      "area": "ProtiCelli intensity conversion",
+      "synapse": "guide predates current normalization and scaling",
+      "current_implementation": "explicit ImageNormalizer and nucleus-reference scaling"
+    }
+  ]
+}

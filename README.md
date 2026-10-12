@@ -11,10 +11,13 @@ is available without GitHub repository access.
 
 ## Participant documentation
 
+[Documentation index](docs/README.md) includes the challenge and participant pages
+imported from Synapse, with their original page IDs and source links.
+
 - [Quickstart](docs/quickstart.md) covers registration, setup, submission, and status.
 - [Submission contract](docs/contract.md) defines the WDL interface and prediction outputs.
 - [Container images](docs/container-images.md) covers publishing and digest pinning.
-- [Benchmark guide](benchmarking/README.md) defines metrics and local benchmarking.
+- [Benchmark guide](docs/benchmark.md) defines metrics and local benchmarking.
 - [ProtiCelli example](docs/proticelli.md) explains the reference model adapter.
 - [Participant releases](docs/participant-releases.md) covers maintainer setup and PyPI publishing.
 

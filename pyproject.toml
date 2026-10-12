@@ -60,8 +60,7 @@ anvil_dream_participant = "."
 
 [tool.setuptools.package-data]
 "anvil_dream_participant" = [
-    "README.md", "docs/container-images.md", "docs/contract.md",
-    "docs/proticelli.md", "docs/quickstart.md", "docs/participant-releases.md",
+    "README.md", "docs/*.md", "docs/*.json", "docs/assets/*.png",
     "examples/proticelli/*.py", "examples/proticelli/*.json",
     "examples/proticelli/*.wdl", "examples/proticelli/*.txt",
     "examples/proticelli/Dockerfile", "examples/proticelli/README.md",
