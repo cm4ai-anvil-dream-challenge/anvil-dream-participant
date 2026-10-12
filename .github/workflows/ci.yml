@@ -1,0 +1,91 @@
+name: Participant package checks
+
+"on":
+  push:
+    branches:
+      - "**"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: participant-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package:
+    name: Python 3.12 package checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out the participant package
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install package and development dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools
+          python -m pip install '.[dev]'
+
+      - name: Check Python lint rules
+        run: python -m ruff check .
+
+      - name: Run unit and offline integration tests
+        run: python -B -m unittest discover -s tests -t . -v
+
+      - name: Build and verify public distributions
+        run: |
+          python -m build --outdir "$RUNNER_TEMP/participant-dist"
+          python -m twine check --strict "$RUNNER_TEMP/participant-dist/"*
+          python -B tests/integration/packaging/verify_public_artifacts.py \
+            "$RUNNER_TEMP/participant-dist/"*.whl \
+            "$RUNNER_TEMP/participant-dist/"*.tar.gz
+
+      - name: Smoke the participant wheel in isolation
+        run: |
+          python -m venv "$RUNNER_TEMP/participant-wheel-venv"
+          WHEEL_PY="$RUNNER_TEMP/participant-wheel-venv/bin/python"
+          WHEEL_BIN="$RUNNER_TEMP/participant-wheel-venv/bin"
+          "$WHEEL_PY" -m pip install "$RUNNER_TEMP/participant-dist/"*.whl
+          "$WHEEL_PY" -m pip check
+          cd "$RUNNER_TEMP"
+          "$WHEEL_PY" - <<'PY'
+          import importlib.util
+
+          assert importlib.util.find_spec("organizer") is None, (
+              "participant installation unexpectedly includes organizer code"
+          )
+
+          import anvil_dream_participant
+          from anvil_dream_participant.progress import ProgressReporter
+          from anvil_dream_participant.submissions.bundle import SubmissionBundle
+          from anvil_dream_participant.workflows import wdl
+
+          assert not hasattr(SubmissionBundle, "from_archive")
+          assert not hasattr(SubmissionBundle, "write_runtime_assets_archive")
+          assert not hasattr(ProgressReporter, "start_heartbeat")
+          assert not hasattr(wdl, "normalize_participant_inputs")
+          print(f"participant package imported from {anvil_dream_participant.__file__}")
+          PY
+          "$WHEEL_BIN/anvil-dream-participant" --help
+          "$WHEEL_BIN/anvil-dream-participant" submit --help
+          "$WHEEL_BIN/anvil-dream-participant" submit-anvil --help
+          "$WHEEL_BIN/anvil-dream-participant" submission-status --help
+          "$WHEEL_PY" "$GITHUB_WORKSPACE/tests/integration/packaging/smoke_participant_wheel.py" \
+            "$GITHUB_WORKSPACE/examples/proticelli/participant.wdl"
+          if "$WHEEL_BIN/anvil-dream-participant" organizer --help \
+            > "$RUNNER_TEMP/organizer-rejection.txt" 2>&1; then
+            echo "participant CLI accepted organizer commands" >&2
+            exit 1
+          fi
+          grep -F "not included in the participant package" \
+            "$RUNNER_TEMP/organizer-rejection.txt"

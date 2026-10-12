@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from dream_participant.submissions.status import ParticipantSubmissionStatus
+from anvil_dream_participant.submissions.status import ParticipantSubmissionStatus
 
 
 class ParticipantStatusTests(unittest.TestCase):

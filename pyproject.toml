@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "anvil-dream-participant"
-version = "0.1.2"
+version = "0.2.0"
 description = "AnVIL DREAM participant CLI, submission tools, and benchmark"
 readme = "README.md"
 license = "Apache-2.0"
@@ -28,7 +28,7 @@ dependencies = [
 
 [project.urls]
 Documentation = "https://www.synapse.org/Synapse:syn74338981/wiki/643841"
-Repository = "https://github.com/cm4ai-anvil-dream-challenge/cm4ai-anvil-dream-tools"
+Repository = "https://github.com/cm4ai-anvil-dream-challenge/anvil-dream-participant"
 
 [project.optional-dependencies]
 dev = [
@@ -42,28 +42,36 @@ dev = [
 ]
 
 [project.scripts]
-anvil-dream-participant = "dream_participant.cli:main"
+anvil-dream-participant = "anvil_dream_participant.cli:main"
 
 [tool.setuptools]
 include-package-data = false
 packages = [
-    "dream_participant",
-    "dream_participant.benchmarking",
-    "dream_participant.cli",
-    "dream_participant.integrations",
-    "dream_participant.submissions",
-    "dream_participant.workflows",
+    "anvil_dream_participant",
+    "anvil_dream_participant.benchmarking",
+    "anvil_dream_participant.cli",
+    "anvil_dream_participant.integrations",
+    "anvil_dream_participant.submissions",
+    "anvil_dream_participant.workflows",
 ]
 
 [tool.setuptools.package-dir]
-dream_participant = "."
+anvil_dream_participant = "."
 
 [tool.setuptools.package-data]
-"dream_participant" = [
-    "README.md", "docs/*.md",
+"anvil_dream_participant" = [
+    "README.md", "docs/container-images.md", "docs/contract.md",
+    "docs/proticelli.md", "docs/quickstart.md",
     "examples/proticelli/*.py", "examples/proticelli/*.json",
     "examples/proticelli/*.wdl", "examples/proticelli/*.txt",
     "examples/proticelli/Dockerfile", "examples/proticelli/README.md",
     "examples/proticelli/scripts/*.py", "examples/proticelli/scripts/*.sh",
 ]
-"dream_participant.benchmarking" = ["README.md"]
+"anvil_dream_participant.benchmarking" = ["README.md"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]

@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock, call
 
-from dream_participant.integrations.synapse_privacy import (
+from anvil_dream_participant.integrations.synapse_privacy import (
     PrivacyReport,
     SubmissionPrivacyError,
     assert_private_to_submitter,

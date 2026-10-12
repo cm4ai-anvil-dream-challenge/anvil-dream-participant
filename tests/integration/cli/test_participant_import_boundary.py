@@ -14,13 +14,13 @@ class ParticipantImportBoundaryTests(unittest.TestCase):
     def test_public_integrations_do_not_import_or_expose_organizer_adapters(self) -> None:
         script = """
 import sys
-from dream_participant.integrations.synapse import ParticipantSynapseGateway
-import dream_participant.benchmarking.evaluation as benchmark
-from dream_participant.benchmarking.image_results import ImageResult
-from dream_participant.integrations.terra import ParticipantTerraClient
-from dream_participant.progress import ProgressReporter
-from dream_participant.submissions.bundle import SubmissionBundle, SubmissionBundleManifest
-import dream_participant.workflows.wdl as participant_wdl
+from anvil_dream_participant.integrations.synapse import ParticipantSynapseGateway
+import anvil_dream_participant.benchmarking.evaluation as benchmark
+from anvil_dream_participant.benchmarking.image_results import ImageResult
+from anvil_dream_participant.integrations.terra import ParticipantTerraClient
+from anvil_dream_participant.progress import ProgressReporter
+from anvil_dream_participant.submissions.bundle import SubmissionBundle, SubmissionBundleManifest
+import anvil_dream_participant.workflows.wdl as participant_wdl
 
 loaded = sorted(module for module in sys.modules if module == "organizer" or module.startswith("organizer."))
 if loaded:
@@ -64,7 +64,7 @@ if hasattr(participant_wdl, "normalize_participant_inputs"):
     def test_public_cli_help_does_not_import_or_accept_organizer_commands(self) -> None:
         script = """
 import sys
-from dream_participant.cli import main
+from anvil_dream_participant.cli import main
 
 try:
     main(["submit", "--help"])

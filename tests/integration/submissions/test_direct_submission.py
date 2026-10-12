@@ -9,20 +9,20 @@ from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 
-from dream_participant.cli.participant import _submit_bundle, build_parser
-from dream_participant.config import (
+from anvil_dream_participant.cli.participant import _submit_bundle, build_parser
+from anvil_dream_participant.config import (
     ParticipantConfig,
     ParticipantSynapseConfig,
     ParticipantTerraConfig,
 )
-from dream_participant.integrations.terra import AnvilIdentity
-from dream_participant.integrations.synapse_readiness import (
+from anvil_dream_participant.integrations.terra import AnvilIdentity
+from anvil_dream_participant.integrations.synapse_readiness import (
     ChallengeAccessState,
     ChallengeReadiness,
     ChallengeRoute,
     TeamMembershipSnapshot,
 )
-from dream_participant.integrations.synapse_upload import ParticipantSubmissionResult
+from anvil_dream_participant.integrations.synapse_upload import ParticipantSubmissionResult
 
 
 WDL = """version 1.0
@@ -142,17 +142,17 @@ class DirectSubmissionTests(unittest.TestCase):
 
             with (
                 patch(
-                    "dream_participant.cli.participant.ParticipantTerraClient", return_value=terra
+                    "anvil_dream_participant.cli.participant.ParticipantTerraClient", return_value=terra
                 ),
                 patch(
-                    "dream_participant.cli.participant.ParticipantSynapseGateway",
+                    "anvil_dream_participant.cli.participant.ParticipantSynapseGateway",
                     return_value=gateway,
                 ),
                 patch(
-                    "dream_participant.cli.participant.verify_public_container_image",
+                    "anvil_dream_participant.cli.participant.verify_public_container_image",
                     side_effect=verify_image,
                 ),
-                patch("dream_participant.cli.participant.progress", progress_mock),
+                patch("anvil_dream_participant.cli.participant.progress", progress_mock),
                 redirect_stdout(output),
             ):
                 self.assertEqual(_submit_bundle(config, args), 0)
@@ -202,14 +202,14 @@ class DirectSubmissionTests(unittest.TestCase):
 
         with (
             patch(
-                "dream_participant.cli.participant.ParticipantSynapseGateway", return_value=gateway
+                "anvil_dream_participant.cli.participant.ParticipantSynapseGateway", return_value=gateway
             ),
             patch(
-                "dream_participant.cli.participant.SubmissionBundle.create", return_value=bundle
+                "anvil_dream_participant.cli.participant.SubmissionBundle.create", return_value=bundle
             ) as create,
-            patch("dream_participant.cli.participant.parse_participant_workflow"),
-            patch("dream_participant.cli.participant.verify_public_container_image"),
-            patch("dream_participant.cli.participant.progress"),
+            patch("anvil_dream_participant.cli.participant.parse_participant_workflow"),
+            patch("anvil_dream_participant.cli.participant.verify_public_container_image"),
+            patch("anvil_dream_participant.cli.participant.progress"),
             redirect_stdout(io.StringIO()),
         ):
             self.assertEqual(_submit_bundle(config, args, identity=identity), 0)
@@ -264,15 +264,15 @@ class DirectSubmissionTests(unittest.TestCase):
             team=None,
         )
         with (
-            patch("dream_participant.cli.participant.ParticipantTerraClient") as terra,
+            patch("anvil_dream_participant.cli.participant.ParticipantTerraClient") as terra,
             patch(
-                "dream_participant.cli.participant.ParticipantSynapseGateway", return_value=gateway
+                "anvil_dream_participant.cli.participant.ParticipantSynapseGateway", return_value=gateway
             ),
             patch(
-                "dream_participant.cli.participant.SubmissionBundle.create", return_value=bundle
+                "anvil_dream_participant.cli.participant.SubmissionBundle.create", return_value=bundle
             ) as create,
-            patch("dream_participant.cli.participant.parse_participant_workflow"),
-            patch("dream_participant.cli.participant.progress"),
+            patch("anvil_dream_participant.cli.participant.parse_participant_workflow"),
+            patch("anvil_dream_participant.cli.participant.progress"),
             redirect_stdout(io.StringIO()),
         ):
             self.assertEqual(_submit_bundle(config, args, identity=identity), 0)
@@ -296,8 +296,8 @@ class DirectSubmissionTests(unittest.TestCase):
             )
             args = SimpleNamespace(wdl=wdl)
             with (
-                patch("dream_participant.cli.participant.ParticipantTerraClient") as terra,
-                patch("dream_participant.cli.participant.ParticipantSynapseGateway") as synapse,
+                patch("anvil_dream_participant.cli.participant.ParticipantTerraClient") as terra,
+                patch("anvil_dream_participant.cli.participant.ParticipantSynapseGateway") as synapse,
             ):
                 with self.assertRaisesRegex(SystemExit, "unsupported cpu"):
                     _submit_bundle(config, args)

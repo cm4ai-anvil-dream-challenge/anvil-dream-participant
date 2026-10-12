@@ -22,7 +22,7 @@ _MANIFEST_ACCEPT = ", ".join(
 )
 _CONTAINER_GUIDE = (
     "https://github.com/cm4ai-anvil-dream-challenge/"
-    "cm4ai-anvil-dream-tools/blob/main/participant/docs/container-images.md"
+    "anvil-dream-participant/blob/main/docs/container-images.md"
 )
 
 

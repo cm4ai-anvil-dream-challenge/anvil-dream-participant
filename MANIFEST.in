@@ -7,3 +7,6 @@ prune build
 prune dist
 prune .venv
 prune venv
+
+include Makefile
+include scripts/release.py

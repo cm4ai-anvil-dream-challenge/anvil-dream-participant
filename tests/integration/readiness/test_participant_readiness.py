@@ -4,10 +4,10 @@ from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
-from dream_participant.cli import main
-from dream_participant.cli.participant import build_parser, run as participant_run
-from dream_participant.integrations.synapse import ParticipantSynapseGateway
-from dream_participant.integrations.synapse_readiness import (
+from anvil_dream_participant.cli import main
+from anvil_dream_participant.cli.participant import build_parser, run as participant_run
+from anvil_dream_participant.integrations.synapse import ParticipantSynapseGateway
+from anvil_dream_participant.integrations.synapse_readiness import (
     ChallengeAccessState,
     ChallengeReadinessError,
     ChallengeRoute,
@@ -73,7 +73,7 @@ class SynapseReadinessTests(unittest.TestCase):
             main(["organizer", "--help"])
 
     def test_participant_help_does_not_mark_a_run_failed(self) -> None:
-        with patch("dream_participant.cli.participant.close_progress") as close:
+        with patch("anvil_dream_participant.cli.participant.close_progress") as close:
             with self.assertRaises(SystemExit) as raised:
                 participant_run(["submit", "--help"])
         self.assertEqual(raised.exception.code, 0)
@@ -226,7 +226,7 @@ class SynapseReadinessTests(unittest.TestCase):
         self.assertEqual(args.name, "anvil-run")
         self.assertEqual(args.team, "team-7")
         with patch(
-            "dream_participant.cli.participant._submit_anvil_bundle", return_value=0
+            "anvil_dream_participant.cli.participant._submit_anvil_bundle", return_value=0
         ) as submit:
             self.assertEqual(
                 main(
@@ -276,7 +276,7 @@ class SynapseReadinessTests(unittest.TestCase):
                 if selected_id:
                     arguments.extend(("--evaluation-id", selected_id))
                 with patch(
-                    "dream_participant.cli.participant._submit_bundle", return_value=0
+                    "anvil_dream_participant.cli.participant._submit_bundle", return_value=0
                 ) as submit:
                     self.assertEqual(main(arguments), 0)
                 self.assertEqual(submit.call_args.args[0].synapse.evaluation_id, evaluation_id)
@@ -302,7 +302,7 @@ class SynapseReadinessTests(unittest.TestCase):
 
     def test_participant_config_option_is_rejected(self) -> None:
         with (
-            patch("dream_participant.cli.participant._submit_bundle", return_value=0),
+            patch("anvil_dream_participant.cli.participant._submit_bundle", return_value=0),
             self.assertRaises(SystemExit),
         ):
             main(
@@ -329,7 +329,7 @@ class SynapseReadinessTests(unittest.TestCase):
             )
             with (
                 patch("pathlib.Path.home", return_value=Path(directory)),
-                patch("dream_participant.cli.participant._submit_bundle", return_value=0) as submit,
+                patch("anvil_dream_participant.cli.participant._submit_bundle", return_value=0) as submit,
             ):
                 self.assertEqual(
                     main(

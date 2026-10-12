@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from dream_participant.submissions.status import ParticipantSubmissionStatus
+from anvil_dream_participant.submissions.status import ParticipantSubmissionStatus
 
 
 def read_submission_status(client: Any, submission_id: str) -> ParticipantSubmissionStatus:

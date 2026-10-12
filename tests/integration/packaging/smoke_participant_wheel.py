@@ -12,22 +12,22 @@ import tarfile
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from dream_participant.submissions.bundle import (
+from anvil_dream_participant.submissions.bundle import (
     ARCHIVE_MANIFEST,
     ARCHIVE_WDL,
     ARCHIVE_WEIGHTS,
     SubmissionBundle,
 )
-from dream_participant.workflows.wdl import parse_participant_workflow
-from dream_participant.benchmarking.aggregate import EvaluationAggregate
-from dream_participant.benchmarking.image_results import (
+from anvil_dream_participant.workflows.wdl import parse_participant_workflow
+from anvil_dream_participant.benchmarking.aggregate import EvaluationAggregate
+from anvil_dream_participant.benchmarking.image_results import (
     ImageResult,
     PIXELS_PER_IMAGE,
 )
-from dream_participant.benchmarking.metrics import ComparisonMetrics
-from dream_participant.benchmarking.score import ScoreResult
-from dream_participant.benchmarking import evaluation as benchmark
-from dream_participant.benchmarking import image_results as image_result_contract
+from anvil_dream_participant.benchmarking.metrics import ComparisonMetrics
+from anvil_dream_participant.benchmarking.score import ScoreResult
+from anvil_dream_participant.benchmarking import evaluation as benchmark
+from anvil_dream_participant.benchmarking import image_results as image_result_contract
 
 
 def main(wdl_path: Path) -> None:
@@ -38,9 +38,9 @@ def main(wdl_path: Path) -> None:
         for entry_point in distribution("anvil-dream-participant").entry_points
         if entry_point.group == "console_scripts"
     }
-    if entry_points != {"anvil-dream-participant": "dream_participant.cli:main"}:
+    if entry_points != {"anvil-dream-participant": "anvil_dream_participant.cli:main"}:
         raise AssertionError(f"participant wheel exposes unexpected commands: {entry_points}")
-    if importlib.util.find_spec("dream_participant.benchmarking.tasks") is not None:
+    if importlib.util.find_spec("anvil_dream_participant.benchmarking.tasks") is not None:
         raise AssertionError("participant wheel includes organizer grading task commands")
     if any(name == "organizer" or name.startswith("organizer.") for name in sys.modules):
         raise AssertionError("participant wheel smoke imported organizer code")
@@ -107,7 +107,7 @@ def main(wdl_path: Path) -> None:
             [
                 sys.executable,
                 "-m",
-                "dream_participant.benchmarking.evaluation",
+                "anvil_dream_participant.benchmarking.evaluation",
                 "--image-results",
                 str(image_results),
                 "--comparison-report",

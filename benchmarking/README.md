@@ -6,7 +6,7 @@ per-image results, computes evaluation-wide metrics and a score, and writes thre
 It does not need prediction TIFFs, target TIFFs, shard receipts, or GCS access.
 
 The implementation is [`evaluation.py`](evaluation.py). The organizer calls the same module from
-[`benchmark.wdl`](https://github.com/cm4ai-anvil-dream-challenge/cm4ai-anvil-dream-tools/blob/feature/cleanup/organizer/workflows/templates/benchmark.wdl). The participant package
+[`benchmark.wdl`](https://github.com/cm4ai-anvil-dream-challenge/cm4ai-anvil-dream-tools/blob/main/organizer/workflows/templates/benchmark.wdl). The participant package
 works on its own; running the Python benchmark does not require the organizer package.
 
 ## Input file
@@ -63,8 +63,8 @@ the file instead of loading all rows into memory.
 From a source checkout, install the participant project and pass the merged file:
 
 ```sh
-python -m pip install -e ./participant
-python -m dream_participant.benchmarking.evaluation \
+python -m pip install -e .
+python -m anvil_dream_participant.benchmarking.evaluation \
   --image-results image-results.jsonl \
   --dataset-id YOUR_DATASET_ID \
   --comparison-report comparison-report.json \
@@ -94,6 +94,6 @@ The outputs are:
 | `score-result.json` | Numeric score and its four named components. |
 
 To reproduce an official benchmark result, use the same JSONL bytes and dataset ID. The
-organizer's [`BenchmarkEvaluation`](https://github.com/cm4ai-anvil-dream-challenge/cm4ai-anvil-dream-tools/blob/feature/cleanup/organizer/workflows/templates/benchmark.wdl) WDL task
+organizer's [`BenchmarkEvaluation`](https://github.com/cm4ai-anvil-dream-challenge/cm4ai-anvil-dream-tools/blob/main/organizer/workflows/templates/benchmark.wdl) WDL task
 invokes this Python module. The participant package includes this benchmark and its input
 contract. Raw grading and gathering remain organizer tasks.

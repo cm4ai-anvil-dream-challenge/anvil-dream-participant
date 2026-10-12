@@ -9,42 +9,42 @@ from pathlib import Path
 
 from synapseclient.core.exceptions import SynapseError
 
-from dream_participant.config import (
+from anvil_dream_participant.config import (
     PARTICIPANT_EVALUATION_ID,
     ParticipantConfig,
     participant_config_for_evaluation,
     require_no_placeholders,
 )
-from dream_participant.submissions.bundle import (
+from anvil_dream_participant.submissions.bundle import (
     DEFAULT_BUNDLE_LIMITS,
     BundleValidationError,
     SubmissionBundle,
 )
-from dream_participant.submissions.gcs_staging import (
+from anvil_dream_participant.submissions.gcs_staging import (
     GcsStagingError,
     GcsSubmissionSources,
     stage_gcs_submission_files,
 )
-from dream_participant.workflows.wdl import (
+from anvil_dream_participant.workflows.wdl import (
     WorkflowContractError,
     parse_participant_workflow,
 )
-from dream_participant.integrations.synapse import (
+from anvil_dream_participant.integrations.synapse import (
     ChallengeReadinessError,
     ParticipantSynapseGateway,
     SubmissionPrivacyError,
     SynapseCredentialsError,
 )
-from dream_participant.integrations.terra import (
+from anvil_dream_participant.integrations.terra import (
     AnvilIdentity,
     ParticipantTerraClient,
     TerraApiError,
 )
-from dream_participant.integrations.container_registry import (
+from anvil_dream_participant.integrations.container_registry import (
     ContainerRegistryError,
     verify_public_container_image,
 )
-from dream_participant.progress import close_progress, progress
+from anvil_dream_participant.progress import close_progress, progress
 
 
 def _evaluation_id(value: str) -> str:

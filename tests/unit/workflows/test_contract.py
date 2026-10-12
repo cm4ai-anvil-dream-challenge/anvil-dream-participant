@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 
 
-from dream_participant.workflows.wdl import (
+from anvil_dream_participant.workflows.wdl import (
     WorkflowContractError,
     parse_participant_workflow,
     validate_workflow_images,

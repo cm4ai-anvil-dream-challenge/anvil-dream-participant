@@ -7,11 +7,11 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
-from dream_participant.cli.participant import _submit_anvil_bundle, build_parser
-from dream_participant.config import participant_config_for_evaluation
-from dream_participant.integrations.terra import AnvilIdentity
-from dream_participant.submissions.bundle import BundleLimits, SubmissionBundle
-from dream_participant.submissions.gcs_staging import (
+from anvil_dream_participant.cli.participant import _submit_anvil_bundle, build_parser
+from anvil_dream_participant.config import participant_config_for_evaluation
+from anvil_dream_participant.integrations.terra import AnvilIdentity
+from anvil_dream_participant.submissions.bundle import BundleLimits, SubmissionBundle
+from anvil_dream_participant.submissions.gcs_staging import (
     GcsStagingError,
     GcsSubmissionSources,
     stage_gcs_submission_files,
@@ -197,7 +197,7 @@ class GcsSubmissionTests(unittest.TestCase):
         limits: BundleLimits = BundleLimits(),
     ):
         with patch(
-            "dream_participant.submissions.gcs_staging.storage.Client", return_value=client
+            "anvil_dream_participant.submissions.gcs_staging.storage.Client", return_value=client
         ) as factory:
             staged = stage_gcs_submission_files(
                 sources,
@@ -371,10 +371,10 @@ class GcsSubmissionTests(unittest.TestCase):
         bundle_flow = Mock(side_effect=lambda *args, **kwargs: (events.append("bundle"), 0)[1])
         stage = Mock(side_effect=lambda *args, **kwargs: (events.append("stage"), staged)[1])
         with (
-            patch("dream_participant.cli.participant.ParticipantTerraClient", return_value=terra),
-            patch("dream_participant.cli.participant.stage_gcs_submission_files", stage),
-            patch("dream_participant.cli.participant._submit_bundle", bundle_flow),
-            patch("dream_participant.cli.participant.progress"),
+            patch("anvil_dream_participant.cli.participant.ParticipantTerraClient", return_value=terra),
+            patch("anvil_dream_participant.cli.participant.stage_gcs_submission_files", stage),
+            patch("anvil_dream_participant.cli.participant._submit_bundle", bundle_flow),
+            patch("anvil_dream_participant.cli.participant.progress"),
         ):
             self.assertEqual(_submit_anvil_bundle(config, args), 0)
 
@@ -407,14 +407,14 @@ class GcsSubmissionTests(unittest.TestCase):
             ]
         )
         with (
-            patch("dream_participant.cli.participant.ParticipantTerraClient", return_value=terra),
+            patch("anvil_dream_participant.cli.participant.ParticipantTerraClient", return_value=terra),
             patch(
-                "dream_participant.cli.participant.stage_gcs_submission_files",
+                "anvil_dream_participant.cli.participant.stage_gcs_submission_files",
                 side_effect=GcsStagingError("object not found"),
             ),
-            patch("dream_participant.cli.participant._submit_bundle") as bundle_flow,
-            patch("dream_participant.cli.participant.ParticipantSynapseGateway") as synapse,
-            patch("dream_participant.cli.participant.progress"),
+            patch("anvil_dream_participant.cli.participant._submit_bundle") as bundle_flow,
+            patch("anvil_dream_participant.cli.participant.ParticipantSynapseGateway") as synapse,
+            patch("anvil_dream_participant.cli.participant.progress"),
             self.assertRaisesRegex(SystemExit, "submission staging failed: object not found"),
         ):
             _submit_anvil_bundle(participant_config_for_evaluation("9620030"), args)

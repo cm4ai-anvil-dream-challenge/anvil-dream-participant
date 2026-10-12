@@ -5,7 +5,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock
 
-from dream_participant.integrations.synapse import (
+from anvil_dream_participant.integrations.synapse import (
     ParticipantSynapseGateway,
     SubmissionPrivacyError,
 )

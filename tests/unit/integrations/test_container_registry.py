@@ -5,7 +5,7 @@ import json
 import unittest
 from typing import Any
 
-from dream_participant.integrations.container_registry import (
+from anvil_dream_participant.integrations.container_registry import (
     ContainerRegistryError,
     verify_public_container_image,
 )

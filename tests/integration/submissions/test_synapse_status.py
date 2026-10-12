@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock
 
-from dream_participant.integrations.synapse_status import read_submission_status
+from anvil_dream_participant.integrations.synapse_status import read_submission_status
 
 
 class SynapseStatusTests(unittest.TestCase):

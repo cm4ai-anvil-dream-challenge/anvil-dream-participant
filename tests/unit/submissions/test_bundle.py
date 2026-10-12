@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from dream_participant.submissions.bundle import (
+from anvil_dream_participant.submissions.bundle import (
     ARCHIVE_MANIFEST,
     ARCHIVE_WEIGHTS,
     ARCHIVE_WDL,

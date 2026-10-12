@@ -20,10 +20,13 @@ PARTICIPANT_GUIDES = {
 }
 
 
+SDIST_MAINTAINER_FILES = {"Makefile", "scripts/release.py", "docs/participant-releases.md"}
+
+
 def _public_module(name: str, archive_kind: str) -> bool:
     parts = PurePosixPath(name).parts
     if archive_kind == "wheel":
-        return len(parts) > 1 and parts[0] == "dream_participant" and name.endswith(".py")
+        return len(parts) > 1 and parts[0] == "anvil_dream_participant" and name.endswith(".py")
     return len(parts) > 1 and name.endswith(".py")
 
 
@@ -40,7 +43,7 @@ def _assert_import_boundary(name: str, source: bytes) -> None:
 
 def _wheel_path_is_public(name: str) -> bool:
     first = PurePosixPath(name).parts[0]
-    return first == "dream_participant" or first.endswith(".dist-info")
+    return first == "anvil_dream_participant" or first.endswith(".dist-info")
 
 
 def _sdist_path_is_public(name: str) -> bool:
@@ -55,6 +58,8 @@ def _sdist_path_is_public(name: str) -> bool:
             "pyproject.toml",
             "setup.cfg",
             "MANIFEST.in",
+            "Makefile",
+            "scripts",
             "__init__.py",
             "config.py",
             "progress.py",
@@ -68,7 +73,9 @@ def _sdist_path_is_public(name: str) -> bool:
             "tests",
         } or parts[0].endswith(".egg-info")
     if parts[0] == "docs":
-        return len(parts) == 2 and "/".join(parts) in PARTICIPANT_GUIDES
+        return len(parts) == 2 and "/".join(parts) in (PARTICIPANT_GUIDES | SDIST_MAINTAINER_FILES)
+    if parts[0] == "scripts":
+        return "/".join(parts) in SDIST_MAINTAINER_FILES
     return (
         parts[0] in {"benchmarking", "cli", "integrations", "submissions", "workflows", "examples", "tests"}
         or parts[0].endswith(".egg-info")
@@ -78,10 +85,10 @@ def _sdist_path_is_public(name: str) -> bool:
 def verify_wheel(path: str) -> tuple[int, list[str]]:
     with zipfile.ZipFile(path) as archive:
         names = archive.namelist()
-        missing_guides = {"dream_participant/" + path for path in PARTICIPANT_GUIDES} - set(names)
+        missing_guides = {"anvil_dream_participant/" + path for path in PARTICIPANT_GUIDES} - set(names)
         assert not missing_guides, f"participant wheel omits guides: {sorted(missing_guides)}"
         unexpected_guides = {name for name in names if name.endswith(".md")} - {
-            "dream_participant/" + path for path in PARTICIPANT_GUIDES
+            "anvil_dream_participant/" + path for path in PARTICIPANT_GUIDES
         }
         assert not unexpected_guides, (
             f"participant wheel includes unexpected documentation: {sorted(unexpected_guides)}"
@@ -97,36 +104,36 @@ def verify_wheel(path: str) -> tuple[int, list[str]]:
         assert not any("tests" in PurePosixPath(name).parts for name in names), (
             "participant wheel includes development tests"
         )
-        assert "dream_participant/examples/proticelli/participant.wdl" in names
-        assert "dream_participant/examples/proticelli/scripts/build_weights.py" in names
+        assert "anvil_dream_participant/examples/proticelli/participant.wdl" in names
+        assert "anvil_dream_participant/examples/proticelli/scripts/build_weights.py" in names
         for name in modules:
             _assert_import_boundary(name, archive.read(name))
         required_benchmark_modules = {
-            "dream_participant/benchmarking/__init__.py",
-            "dream_participant/benchmarking/aggregate.py",
-            "dream_participant/benchmarking/contract.py",
-            "dream_participant/benchmarking/evaluation.py",
-            "dream_participant/benchmarking/image_results.py",
-            "dream_participant/benchmarking/report.py",
-            "dream_participant/benchmarking/score.py",
+            "anvil_dream_participant/benchmarking/__init__.py",
+            "anvil_dream_participant/benchmarking/aggregate.py",
+            "anvil_dream_participant/benchmarking/contract.py",
+            "anvil_dream_participant/benchmarking/evaluation.py",
+            "anvil_dream_participant/benchmarking/image_results.py",
+            "anvil_dream_participant/benchmarking/report.py",
+            "anvil_dream_participant/benchmarking/score.py",
         }
         missing_benchmark = required_benchmark_modules - set(modules)
         assert not missing_benchmark, (
             f"participant wheel omits benchmark modules: {sorted(missing_benchmark)}"
         )
-        assert "dream_participant/benchmarking/README.md" in names, (
+        assert "anvil_dream_participant/benchmarking/README.md" in names, (
             "participant wheel omits its benchmark input guide"
         )
         forbidden_modules = {
             name
             for name in names
-            if name.startswith(("organizer/", "dream_participant/grading/"))
+            if name.startswith(("organizer/", "anvil_dream_participant/grading/"))
             or "/tasks/gather" in name
         }
         assert not forbidden_modules, (
             f"participant wheel includes organizer grading/gather code: {sorted(forbidden_modules)}"
         )
-        assert "dream_participant/benchmarking/_evidence.py" not in names, (
+        assert "anvil_dream_participant/benchmarking/_evidence.py" not in names, (
             "participant wheel includes organizer provenance helpers"
         )
 
@@ -149,11 +156,11 @@ def verify_wheel(path: str) -> tuple[int, list[str]]:
             name for name in names if name.endswith(".dist-info/entry_points.txt")
         )
         entry_points = archive.read(entry_points_name).decode("utf-8")
-        assert "anvil-dream-participant = dream_participant.cli:main" in entry_points
+        assert "anvil-dream-participant = anvil_dream_participant.cli:main" in entry_points
         console_scripts = [
             line for line in entry_points.splitlines() if line and not line.startswith("[")
         ]
-        assert console_scripts == ["anvil-dream-participant = dream_participant.cli:main"], (
+        assert console_scripts == ["anvil-dream-participant = anvil_dream_participant.cli:main"], (
             f"participant wheel exposes unexpected console scripts: {console_scripts}"
         )
     return len(names), modules
@@ -166,7 +173,9 @@ def verify_sdist(path: str) -> tuple[int, list[str]]:
         assert "LICENSE" in relative_names, "participant sdist omits its license"
         missing_guides = PARTICIPANT_GUIDES - relative_names
         assert not missing_guides, f"participant sdist omits guides: {sorted(missing_guides)}"
-        unexpected_guides = {name for name in relative_names if name.endswith(".md")} - PARTICIPANT_GUIDES
+        unexpected_guides = {name for name in relative_names if name.endswith(".md")} - (
+            PARTICIPANT_GUIDES | SDIST_MAINTAINER_FILES
+        )
         assert not unexpected_guides, (
             f"participant sdist includes unexpected documentation: {sorted(unexpected_guides)}"
         )
@@ -187,7 +196,7 @@ def verify_sdist(path: str) -> tuple[int, list[str]]:
         pyproject = archive.extractfile(pyproject_name)
         assert pyproject is not None
         source = pyproject.read().decode("utf-8")
-        assert 'anvil-dream-participant = "dream_participant.cli:main"' in source
+        assert 'anvil-dream-participant = "anvil_dream_participant.cli:main"' in source
     return len(names), modules
 
 
