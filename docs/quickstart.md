@@ -275,6 +275,9 @@ and authenticated identities. Save the returned `submission_id`. Initial status
 `RECEIVED` means Synapse accepted the submission; prediction and grading may still
 be pending.
 
+`ACCEPTED` means organizer validation passed. `SCORED` means evaluation and
+grading completed successfully.
+
 ```sh
 anvil-dream-participant submission-status --submission-id SUBMISSION_ID
 ```
