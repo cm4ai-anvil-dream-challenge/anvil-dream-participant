@@ -96,8 +96,7 @@ One NVIDIA L4 GPU (`g2-standard-8`) with 8 CPUs, 32 GB memory, and 75 GB SSD; wi
 
 ### Model input files
 
-Your script should read in a JSON array created by `~{write_json(inputs)}`. Each record will contain a prediction ID, three aligned reference images, and an explicit protein FASTA file. The optional `mask_image` receives a cell mask when available. Keep
-`write_json(inputs)` directly in the command placeholder of your WDL file so that the JSON contains localized paths. Do not declare a task-level manifest file or infer sequence from a filename.
+Your script should read in a JSON array created by `~{write_json(inputs)}` (command placeholder in your WDL file).  Each record will contain a prediction ID, three aligned reference images, and an explicit protein FASTA file. The optional `mask_image` will receive a cell mask when available.
 
 ### Expected model output files
 
