@@ -1,47 +1,130 @@
-# Participant quickstart
+This guide walks you through using the [AnVIL DREAM participant CLI tool](https://github.com/cm4ai-anvil-dream-challenge/anvil-dream-participant) to build, package, and submit your model. Once submitted, your pipeline will run against our hidden evaluation dataset.
 
-Submit your model through the DREAM participant CLI. You provide a task-only WDL,
-a public container image, one weights file, and optional supporting files. The CLI
-validates and packages these files into a private Synapse submission. Organizers
-run prediction and grading on hidden evaluation data.
+> **Before you start:** you must be registered for the challenge and a Certified User. See [How to participate](how-to-participate.md) for more details.
 
-Use `submit` for files on your computer, or `submit-anvil` for files in Google Cloud
-Storage from an AnVIL RStudio VM. Both use the standalone participant package.
+Follow the steps below to set up the CLI, prepare your items, and submit.
 
-## 1. Register for the challenge
+---
 
-1. Create or sign in to your [Synapse account](https://www.synapse.org/).
-2. Complete [Synapse Certified User status](https://www.synapse.org/#!Profile:certified).
-3. Open the [challenge home page](overview.md)
-   and use **Register**. Complete the requirements shown on the site and review the
-   [challenge rules](challenge-rules.md).
-   A pending registration request must be approved before submission.
-4. Sign in to [Terra](https://app.terra.bio/) with the Google account you will use
-   for submission. Complete registration and any profile or terms prompts.
-5. Ensure your registered participant account has **Can Submit** access to the
-   challenge Evaluation Queue, `9620030`.
+## 1. Install the CLI
 
-Use Evaluation Queue **`9620030`** for submissions. The commands below select this
-queue with `--evaluation-id`.
+> **One-time setup.** If you've already installed the CLI, skip to [Step 2](#2-configure-authentication).
 
-To submit individually, omit `--team`. To submit on behalf of your competing team,
-register that team with the challenge and add `--team TEAM_ID` to your submission
-command. Replace `TEAM_ID` with your team's Synapse ID. The CLI checks that the
-team is eligible to submit.
+You need Python 3.12 or newer. Install the participant release from PyPI into its own virtual environment. This guide uses `venv`, but `uv`, `conda`, and others also work (the activate command will differ). These commands work from any directory:
 
-## 2. Prepare your model and WDL
+```sh
+python3.12 --version
+python3.12 -m venv "$HOME/dream-participant-venv"
+. "$HOME/dream-participant-venv/bin/activate"
+PIP_USER=false python -m pip install anvil-dream-participant==0.1.2
+anvil-dream-participant --help
+anvil-dream-participant submit --help
+anvil-dream-participant submit-anvil --help
+```
 
-Read the [submission format](contract.md)
-and the [current participant contract](contract.md).
-Your model can use any framework that implements the interface. ProtiCelli is an
-example, not a required dependency.
+Each time you open a new terminal, reactivate the environment:
 
-Create `workflow.wdl` with exactly one task named `Predict` and no `workflow` block.
-The only task inputs are `Array[PredictionInput] inputs` and `File weights`, and
-its only output is `Array[File] predictions`. Only `docker` is allowed in runtime.
+```sh
+. "$HOME/dream-participant-venv/bin/activate"
+```
 
-This template uses the current interface. Replace the container reference and
-prediction command with your own implementation before submitting:
+The participant release includes PNG and optional-mask support, and no repository access is needed for installation. To install from source (like for package development or contribution), see the [participant CLI guide](cli.md).
+
+<details>
+<summary>Working in AnVIL?</summary>
+
+In the AnVIL RStudio Bioconductor VM, use **Tools > Terminal > New Terminal**, not the R console. Set `PIP_USER=false` to stop pip from forcing a user-site install.
+
+If `python3.12` is unavailable, use another installed Python 3.12+ executable, or ask the organizers for a supported VM setup.
+
+</details>
+
+<details>
+<summary>Extra WDL validation</summary>
+
+The CLI checks your WDL with miniwdl; Java is not required. For an independent Cromwell parser check, follow the [WOMtool validation instructions](https://github.com/broadinstitute/cromwell/blob/develop/docs/WOMtool.md). Parser validation does not replace running your model on development inputs.
+
+</details>
+
+## 2. Configure authentication
+
+> **One-time setup.** If you've already logged in, skip to [Step 3](#3-prepare-your-model-and-wdl).
+
+The CLI is dependent on authentication to both Synapse and Google Cloud.
+
+### Synapse
+
+1. Generate a [Synapse Personal Access Token (PAT)](https://www.synapse.org/#!PersonalAccessTokens:) with all permissions enabled: **View**, **Download**, and **Modify**.
+2. Run the following command, and follow the prompts to enter your Synapse username and PAT:
+
+   ```sh
+   synapse config
+   synapse login
+   ```
+
+   This will create a `.synapseConfig` file in your home directory.
+
+<mark>Note: keep all tokens out of the commands, the WDL file, containers, and submitted files.</mark>
+
+### Google Cloud
+
+How you login will depend on where your files to be submitted are located:
+
+**Files on your computer**
+
+1. Install the [Google Cloud CLI](https://cloud.google.com/sdk/docs/install)
+2. Configure Application Default Credentials (ADC) with the Google account registered in Terra:
+
+   ```sh
+   gcloud auth application-default login
+   ```
+
+Local submission requires Terra registration, but does not require organizer workspace or bucket access.
+
+**Files in an AnVIL bucket**
+
+No login required. The CLI will derive your registered email from Terra Sam - do **not** run a separate ADC login in the VM.
+
+
+## 3. Prepare your model and WDL
+
+Your model can use any framework that implements the interface. ProtiCelli is only an example, not a requirement. For full context, read the [submission contract](contract.md), which defines the full WDL interface and prediction outputs.
+
+### Environment Constraints
+
+One NVIDIA L4 GPU (`g2-standard-8`) with 8 CPUs, 32 GB memory, and 75 GB SSD; with no task retries and one timeout set by the organizers. See the [submission contract](contract.md) for more details.
+
+### Model input files
+
+Your script should read in a JSON array created by `~{write_json(inputs)}`. Each record will contain a prediction ID, three aligned reference images, and an explicit protein FASTA file. The optional `mask_image` receives a cell mask when available. Keep
+`write_json(inputs)` directly in the command placeholder of your WDL file so that the JSON contains localized paths. Do not declare a task-level manifest file or infer sequence from a filename.
+
+### Expected model output files
+
+For each input record, write one single-channel `512 x 512` uint8 PNG named exactly `<prediction_id>.png`. Put these files in `predictions/` and return them through the WDL output.
+
+Note that reference images use uint8 pixels. Apply the input normalization required by your model inside the container, and encode predictions on the native 0–255 intensity scale. Private target images are available only to organizer grading.
+
+### Weights file
+
+Prepare one weights file in the format your model expects. An archive is acceptable if your code can read or unpack it. The CLI does not convert model checkpoints.
+
+For model-specific starting points, including how the ProtiCelli weights bundle is assembled, see the [ProtiCelli example](proticelli.md) and [ProtiCelliDream](https://github.com/cm4ai-anvil-dream-challenge/ProtiCelliDream).
+
+### Wrap it in a WDL file
+
+Create a `workflow.wdl` with:
+
+* Exactly one task named `Predict`
+* No `workflow` block
+* Only two inputs: `Array[PredictionInput] inputs` and `File weights`
+* Only one output: `Array[File] predictions`
+* Only `docker` in `runtime`
+
+Keep `write_json(inputs)` in the `command` placeholder so that the JSON contains the correct file paths. Do not declare a task-level manifest file.
+
+<details>
+<summary>Example WDL template</summary>
 
 ```wdl
 version 1.0
@@ -79,135 +162,48 @@ task Predict {
 }
 ```
 
-The script and its flags are examples you implement in your container. Include
-model code and dependencies in the image. Model settings such as batch size and
-seed belong in the command or model code. Organizers set resources and timeout.
+> **Important Notes**
+> * **Do not include:** credentials, symlinks, or the reserved paths `predictions` and `__dream_runtime_assets.tar`
+> * Run supporting scripts with their interpreter (for example `python script.py`), because executable bits are not preserved
 
-Your script reads the JSON array created by `~{write_json(inputs)}`. Each record
-contains a prediction ID, three aligned reference images, and an explicit protein
-FASTA file. The optional `mask_image` receives a cell mask when available. Keep
-`write_json(inputs)` directly in the command placeholder so the JSON contains
-localized paths. Do not declare a task-level manifest file or infer sequence from
-a filename.
+</details>
 
-Write one single-channel `512 x 512` uint8 PNG per input record, named
-exactly `<prediction_id>.png`. Put these files in `predictions/` and return them
-through the WDL output. Reference images use uint8 pixels. Apply the input
-normalization required by your model inside the container, and encode predictions
-on the native 0–255 intensity scale. Private target images are available only to
-organizer grading.
 
-Prepare one weights file in the format your model expects. An archive is acceptable
-if your code can read or unpack it. The CLI does not convert model checkpoints.
-See the [ProtiCelli example](proticelli.md)
-and [ProtiCelliDream](https://github.com/cm4ai-anvil-dream-challenge/ProtiCelliDream)
-for model-specific starting points.
+## 4. Build and publish the Docker image
 
-## 3. Build and publish the container
+The image must target the `linux/amd64` platform, so build it using Docker Buildx. Arm-only images will not be accepted.
 
-Use a machine with Docker Buildx and access to your registry. Replace `ORG`, `IMAGE`,
-and the container build directory:
+1. Make sure your Dockerfile installs `bash` and `tar` , which are used for execution and optional file extraction.
 
-```sh
-docker buildx build --platform linux/amd64 --push \
-  --tag ghcr.io/ORG/IMAGE:release ./container
-docker buildx imagetools inspect ghcr.io/ORG/IMAGE:release
-```
+2. Build and push the image, replacing `ORG`, `IMAGE`, and the build directory:
 
-Make the image publicly pullable without credentials. Copy its published digest
-into the WDL as `ghcr.io/ORG/IMAGE@sha256:...`. Mutable tags and ARM-only images are
-not accepted. Include `bash` and `tar` for execution and optional file extraction.
+   ```sh
+   docker buildx build --platform linux/amd64 --push \
+     --tag ghcr.io/ORG/IMAGE:release ./container
+   docker buildx imagetools inspect ghcr.io/ORG/IMAGE:release
+   ```
 
-Run your prediction command against development inputs before submitting. Verify
-weights loading and correctly named uint8 PNG outputs. The CLI checks public image
-access and `linux/amd64` support, but cannot prove your model will execute.
-See the [container guide](container-images.md).
+3. Make the image public, so that anyone can pull it without credentials
+4. Copy its digest into your WDL file as `ghcr.io/ORG/IMAGE@sha256:...`. Mutable tags (like `:release`) are not accepted.
 
-## 4. Install the participant CLI
 
-Use Python 3.12 or newer. Install the participant release from PyPI in its own
-virtual environment. These commands work from any directory:
+> **Test first!** The CLI can check your image's public access and `linux/amd64` support, but it cannot prove your model will run. Before submitting, we recommend running your prediction command on development inputs. Check that the weights load and that the uint8 PNG outputs are correctly named.
+
+See the [container images guide](container-images.md) for more.
+
+
+## 5. Submit
+
+Activate the Python environment (see Step 1), then set the queue ID for the submission command:
 
 ```sh
-python3.12 --version
-python3.12 -m venv "$HOME/dream-participant-venv"
-. "$HOME/dream-participant-venv/bin/activate"
-PIP_USER=false python -m pip install anvil-dream-participant==0.2.0
-anvil-dream-participant --help
-anvil-dream-participant submit --help
-anvil-dream-participant submit-anvil --help
+export DREAM_EVALUATION_ID=9620108
 ```
 
-The release includes PNG and optional-mask support. Repository access is not
-required for installation. See the [participant CLI guide](cli.md) for
-installing a source checkout when developing the package.
+Run the command that matches where your files are, replacing the example paths with your own. Both commands will generate the required tarfile and manifest for you, as well as create or reuse your private Synapse submission project.
 
-In AnVIL, use the RStudio Bioconductor VM's **Tools > Terminal > New Terminal**,
-not the R console. `PIP_USER=false` prevents pip from forcing a user-site install.
-If `python3.12` is unavailable, use another installed Python 3.12 or newer executable
-or ask organizers for a supported VM setup.
 
-Activate this environment again in each new terminal:
-
-```sh
-. "$HOME/dream-participant-venv/bin/activate"
-```
-
-The CLI checks WDL with miniwdl; Java is not required. For an optional independent
-Cromwell parser check, follow the
-[WOMtool validation instructions](https://github.com/broadinstitute/cromwell/blob/develop/docs/WOMtool.md).
-Parser validation does not replace running your model on development inputs.
-
-## 5. Configure authentication
-
-In Synapse, open **Account Settings > Personal Access Tokens** and create a token
-with **View**, **Download**, and **Modify**. Configure the client in your environment:
-
-```sh
-synapse config
-synapse login
-```
-
-Enter the token through the client's prompts. Keep tokens out of commands, WDL,
-containers, and submitted files. Synapse and Google authentication are separate.
-
-For local `submit`, install the Google Cloud CLI and configure Application Default
-Credentials with the Google account registered in Terra:
-
-```sh
-gcloud auth application-default login
-```
-
-Use that account's email for `--anvil-email`. Local submission needs Terra
-registration, but does not require organizer workspace or bucket access.
-
-For `submit-anvil`, use the RStudio VM's existing Google credentials. Do not run a
-separate ADC login in that VM. The CLI derives your registered email from Terra Sam,
-so this route has no `--anvil-email` flag. The VM identity needs list and read access
-to the bucket holding your files.
-
-## 6. Submit through one route
-
-Set the challenge Evaluation Queue ID:
-
-```sh
-export DREAM_EVALUATION_ID=9620030
-```
-
-### Local files
-
-An example directory is:
-
-```text
-submission/
-  workflow.wdl
-  weights.pt
-  context/
-    config.yaml
-    vocab/tokens.json
-```
-
-Replace paths and email with your own:
+### Files on your computer: `submit`
 
 ```sh
 anvil-dream-participant submit \
@@ -219,12 +215,9 @@ anvil-dream-participant submit \
   --name my-model-v1
 ```
 
-Omit `--other-files` if no supporting files are needed. Add `--team TEAM_ID` for a
-team submission.
+### Files in an AnVIL bucket: `submit-anvil`
 
-### Files in an AnVIL bucket
-
-Check that the VM sets `WORKSPACE_BUCKET`. Replace the example object paths:
+Check that the VM sets `WORKSPACE_BUCKET`, then run:
 
 ```sh
 export SUBMISSION_BUCKET="$WORKSPACE_BUCKET"
@@ -236,76 +229,67 @@ anvil-dream-participant submit-anvil \
   --name my-model-v1
 ```
 
-Use `--files` followed by space-separated `gs://bucket/object` URLs for supporting
-files. Each file becomes available by its filename, such as `config.yaml`, in the
-prediction task's working directory. Omit `--files` when no supporting files are needed.
+To use a different bucket, set `SUBMISSION_BUCKET` to its `gs://` URL and make sure the VM can access it. Allow temporary disk space for the downloaded files and the submission tarfile.
 
-To include an entire GCS directory, add `--recursive`:
+
+### Command options
+
+| Command | Option | Description |
+|---|---|---|
+| Both | `--wdl`, `--weights` | Filepath to your `workflow.wdl` and weights file |
+| `submit`| `--other-files` | Supporting files, passed as a folder. Omit if you have none |
+| `submit-anvil` | `--files` | Supporting files, passed as space-separated `gs://` bucket/object URLs. Omit if you have none. |
+| `submit` | `--anvil-email` | The email of the Google account registered in Terra |
+| Both | `--evaluation-id` | The queue ID to submit the model pipeline to |
+| Both | `--name` | A label for this submission. **Use a new name each time you submit.** |
+| Both | `--team` | Optional. Pass your Synapse team ID to submit as a team |
+
+<details>
+<summary>Include a whole folder with `--recursive`</summary>
 
 ```sh
 anvil-dream-participant submit-anvil \
   --wdl "$SUBMISSION_BUCKET/path/to/workflow.wdl" \
   --weights "$SUBMISSION_BUCKET/path/to/weights.pt" \
-  --files "$SUBMISSION_BUCKET/path/to/context/" --recursive \
+  --files "$SUBMISSION_BUCKET/path/to/context/" \
+  --recursive \
   --evaluation-id "$DREAM_EVALUATION_ID" \
   --name my-model-v1
 ```
 
-Recursive mode treats every `--files` path as a directory prefix. A trailing slash
-is optional. Paths below each prefix are preserved: `context/vocab/tokens.json`
-becomes `vocab/tokens.json`. You can provide multiple directories, including ones
-in different buckets. Duplicate destination paths and file/directory conflicts
-are rejected before download. `--recursive` requires `--files`.
+* `--recursive` requires `--files`. Each `--files` path is treated as a directory prefix (a trailing slash is optional), and paths below it are preserved. For example, `context/vocab/tokens.json` becomes `vocab/tokens.json`
+* You can give multiple directories, including ones in different buckets. Duplicate destination paths and file/directory conflicts are rejected before download.
 
-For another bucket, set `SUBMISSION_BUCKET` to its `gs://` URL and verify VM access.
-Allow temporary disk space for both the downloaded files and the submission TAR.
+</details>
 
-The CLI creates or reuses your private Synapse submission project and builds the
-TAR and manifest automatically. Do not submit a Dockerfile or build the manifest
-by hand. Supporting files become relative to the task's working directory. The
-example supplies `config.yaml` and `vocab/tokens.json`, not `context/config.yaml`.
-Do not include credentials, symlinks, or reserved paths `predictions` and
-`__dream_runtime_assets.tar`. Invoke supporting scripts with their interpreter;
-executable bits are not preserved.
+### Supporting files
 
-## 7. Save the submission ID and check status
+Supporting files are optional, and they land in the prediction task's working directory. The example folder below produces `config.yaml` and `vocab/tokens.json`, not `context/config.yaml`:
 
-Success prints JSON containing `submission_id`, `entity_id`, `status`, fingerprints,
-and authenticated identities. Save the returned `submission_id`. Initial status
-`RECEIVED` means Synapse accepted the submission; prediction and grading may still
-be pending.
+```text
+submission/
+  workflow.wdl
+  weights.pt
+  context/
+    config.yaml
+    vocab/tokens.json
+```
+
+
+## 6. Check submission status
+
+A successful submission will output `submission_id`, `entity_id`, `status`, fingerprints, and authenticated identities. **Save the `submission_id`** then use it to check its status:
 
 ```sh
 anvil-dream-participant submission-status --submission-id SUBMISSION_ID
 ```
 
-Replace `SUBMISSION_ID` with the returned ID. The command reports `status`,
-`dream_state`, `comparison_status`, `comparison_shard_count`, and `error` when
-available. Organizer annotations may initially be null. Rerun later for updates.
-Organizers operate evaluation and grading.
+A status of `RECEIVED` means Synapse has received your submission into the queue. Prediction and grading may still be pending, so rerun this command later for updates.
 
-For a revised model, update your files and rerun with a distinct `--name`. Identical
-bundles may reuse the uploaded TAR while creating another queue submission. Follow
-challenge rules and queue quotas before resubmitting.
+> #### **Optional: run the public benchmark**
+> The package includes the benchmark organizers use. It runs on an already merged `image-results.jsonl` file, not prediction PNGs, and cannot recreate official metrics on its own. See the [benchmark guide](../benchmarking/README.md) for the command and scoring formula.
 
-## Optional: run the public benchmark
-
-The participant package includes the benchmark used by organizers. It reads an
-already merged `image-results.jsonl` file of per-image metrics, not prediction PNGs.
-If you have a compatible results file, run:
-
-```sh
-python -m anvil_dream_participant.benchmarking.evaluation \
-  --image-results image-results.jsonl \
-  --comparison-report comparison-report.json \
-  --aggregate evaluation-aggregate.json \
-  --output score-result.json
-```
-
-See the [benchmark guide](benchmark.md)
-for the exact JSONL schema and scoring formula. Official targets are private.
-Prediction PNGs alone cannot recreate official metrics. Running this benchmark
-does not require the organizer package.
+---
 
 ## Troubleshooting
 
@@ -313,8 +297,8 @@ does not require the organizer package.
 |---|---|
 | `anvil-dream-participant` is missing, or expected flags are missing | Activate the participant environment and rerun installation and help commands. |
 | Synapse authentication fails | Configure a current token with View, Download, and Modify, then log in again. |
-| Certification or registration is incomplete | Complete the requirements reported by the CLI. Pending requests need organizer approval. |
-| `queue_submit_denied` or `participant_team_queue_access_denied` | Give organizers the queue ID and ask them to check participant Can Submit access. |
+| Certification or registration is incomplete | Complete the requirements reported by the CLI. |
+| `queue_submit_denied` or `participant_team_queue_access_denied` | Give organizers the queue ID and ask them to check participant access. |
 | `submission_team_ineligible` | Check competing-team registration, eligibility, and quota for the selected queue. |
 | Terra identity or local ADC error | Complete Terra registration and refresh ADC with the account matching `--anvil-email`. |
 | GCS staging fails | Check object paths, VM list/read access, and temporary disk space. |
@@ -322,5 +306,5 @@ does not require the organizer package.
 | WDL validation fails | Use the exact task interface, one command-level `write_json(inputs)` placeholder, and only `docker` in runtime. |
 | Evaluation fails after `RECEIVED` | Read `submission-status`, check the error and output contract, and share the submission ID with organizers. |
 
-When asking for help, include your command with secrets removed, queue ID, submission
-ID if returned, and error text. Never share access tokens.
+Still stuck? Post your question to the [discussion board](https://www.synapse.org/Synapse:syn77349038/discussion/default)!
+When asking for help, include your command with secrets removed, submission ID if returned, and the error log. Never share access tokens.
