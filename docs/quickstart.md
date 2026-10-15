@@ -40,7 +40,7 @@ If `python3.12` is unavailable, use another installed Python 3.12+ executable, o
 </details>
 
 <details>
-<summary>Extra WDL validation</summary>
+<summary>Extra WDL validation?</summary>
 
 The CLI checks your WDL with miniwdl; Java is not required. For an independent Cromwell parser check, follow the [WOMtool validation instructions](https://github.com/broadinstitute/cromwell/blob/develop/docs/WOMtool.md). Parser validation does not replace running your model on development inputs.
 
@@ -112,18 +112,23 @@ For model-specific starting points, including how the ProtiCelli weights bundle 
 
 ### Wrap it in a WDL file
 
-Create a `workflow.wdl` with:
+Create a `workflow.wdl` that defines your execution pipeline. To ensure compatibility with the evaluation harness, your WDL must adhere to the following interface rules:
 
-* Exactly one task named `Predict`
-* No `workflow` block
-* Only two inputs: `Array[PredictionInput] inputs` and `File weights`
-* Only one output: `Array[File] predictions`
-* Only `docker` in `runtime`
+* Exactly one task named `Predict`, with no outer `workflow` block
+* Exactly two inputs: `Array[PredictionInput] inputs` and `File weights`
+* Exactly one output: `Array[File] predictions`
+* Only the `docker` attribute declared in the `runtime` block
+* Do not declare a task-level manifest file. Keep `write_json(inputs)` in the `command` block so file paths are generated correctly
 
-Keep `write_json(inputs)` in the `command` placeholder so that the JSON contains the correct file paths. Do not declare a task-level manifest file.
+
+**Container Implementation**
+
+All model code, dependencies, and execution scripts must be baked directly into your container image. The entrypoint script (`predict.py`) and command-line flags shown in the example below are customizable templates for your container. Adjust script names, flags, and model hyperparameters (such as batch size and random seeds) inside the WDL `command` block or model code as needed.
 
 <details>
 <summary>Example WDL template</summary>
+
+This template uses the current interface.
 
 ```wdl
 version 1.0
