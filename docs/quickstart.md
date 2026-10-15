@@ -175,7 +175,7 @@ task Predict {
 
 ## 4. Build and publish the Docker image
 
-The image must target the `linux/amd64` platform, so build it using Docker Buildx. Arm-only images will not be accepted.
+The image must target the `linux/amd64` platform, so build it using Docker Buildx. Arm-only images will not be accepted. See the [container images guide](container-images.md) for more details.
 
 1. Make sure your Dockerfile installs `bash` and `tar` , which are used for execution and optional file extraction.
 
@@ -189,11 +189,7 @@ The image must target the `linux/amd64` platform, so build it using Docker Build
 
 3. Make the image public, so that anyone can pull it without credentials
 4. Copy its digest into your WDL file as `ghcr.io/ORG/IMAGE@sha256:...`. Mutable tags (like `:release`) are not accepted.
-
-
-> **Test first!** The CLI can check your image's public access and `linux/amd64` support, but it cannot prove your model will run. Before submitting, we recommend running your prediction command on development inputs. Check that the weights load and that the uint8 PNG outputs are correctly named.
-
-See the [container images guide](container-images.md) for more.
+5. **Test the new image!** The CLI can check your image's public access and `linux/amd64` support, but it cannot prove your model will run. Before submitting, we recommend running your prediction command on development inputs. Check that the weights load and that the uint8 PNG outputs are correctly named.
 
 
 ## 5. Submit
