@@ -19,9 +19,9 @@ Storage from an AnVIL RStudio VM. Both use the standalone participant package.
 4. Sign in to [Terra](https://app.terra.bio/) with the Google account you will use
    for submission. Complete registration and any profile or terms prompts.
 5. Ensure your registered participant account has **Can Submit** access to the
-   challenge Evaluation Queue, `9620030`.
+   challenge Evaluation Queue, `9620108`.
 
-Use Evaluation Queue **`9620030`** for submissions. The commands below select this
+Use Evaluation Queue **`9620108`** for submissions. The commands below select this
 queue with `--evaluation-id`.
 
 To submit individually, omit `--team`. To submit on behalf of your competing team,
@@ -191,7 +191,7 @@ to the bucket holding your files.
 Set the challenge Evaluation Queue ID:
 
 ```sh
-export DREAM_EVALUATION_ID=9620030
+export DREAM_EVALUATION_ID=9620108
 ```
 
 ### Local files
@@ -274,6 +274,9 @@ Success prints JSON containing `submission_id`, `entity_id`, `status`, fingerpri
 and authenticated identities. Save the returned `submission_id`. Initial status
 `RECEIVED` means Synapse accepted the submission; prediction and grading may still
 be pending.
+
+`ACCEPTED` means organizer validation passed. `SCORED` means evaluation and
+grading completed successfully.
 
 ```sh
 anvil-dream-participant submission-status --submission-id SUBMISSION_ID
