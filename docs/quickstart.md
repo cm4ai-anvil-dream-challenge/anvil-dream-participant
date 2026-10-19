@@ -302,9 +302,6 @@ anvil-dream-participant submission-status --submission-id SUBMISSION_ID
 
 A status of `RECEIVED` means Synapse has received your submission into the queue. Prediction and grading may still be pending, so rerun this command later for updates.
 
-`ACCEPTED` means organizer validation passed. `SCORED` means evaluation and
-grading completed successfully.
-
 > #### **Optional: run the public benchmark**
 > The package includes the benchmark organizers use. It runs on an already merged `image-results.jsonl` file, not prediction PNGs, and cannot recreate official metrics on its own. See the [benchmark guide](benchmark.md) for the command and scoring formula.
 

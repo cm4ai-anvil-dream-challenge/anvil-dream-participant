@@ -5,7 +5,6 @@ The mapping was rebuilt from all 18 pages in the live wiki hierarchy, including 
 This import did not change Synapse.
 
 Source prose and code examples are retained. Links and Synapse widgets are adapted for local Markdown.
-The existing quickstart clarification for `ACCEPTED` and `SCORED` is retained as a local addition.
 The staging guides still contain some older technical details. The differences from the current package are recorded in [synapse-pages.json](synapse-pages.json).
 
 The manifest records page IDs, parents, timestamps, source and document checksums, and image attachment checksums.

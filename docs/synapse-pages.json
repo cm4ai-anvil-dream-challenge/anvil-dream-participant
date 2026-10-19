@@ -2,7 +2,7 @@
   "project_id": "syn74338981",
   "project_name": "CM4AI-AnVIL DREAM Challenge - staging",
   "root_wiki_id": "639954",
-  "imported_at": "2026-10-19T21:36:59.659325+00:00",
+  "imported_at": "2026-10-19T22:03:42.361946+00:00",
   "mapping_source": "Live Synapse wiki headers and page metadata, discovered on import.",
   "formatting_changes": [
     "Synapse wiki links changed to local Markdown links for all imported pages.",
@@ -192,7 +192,7 @@
       "etag": "ce4d5009-a1c9-4523-af4e-f9c52ff5e6e6",
       "modified_on": "2026-10-15T18:01:55.090Z",
       "source_sha256": "fa5021b67ecfb4d7b6da137022c44444d71e3b0dabb6e36657794d81b00d2d8c",
-      "imported_sha256": "7429cd8dabf08507a03e9f45fc8979b6bb8c10957afe5c6e251f033549bff504"
+      "imported_sha256": "e808d2c5fe3934c025e107305021b995c9b471a334091d163db1d80eff70c6f7"
     }
   ],
   "attachments": [
@@ -242,7 +242,5 @@
       "current_implementation": "explicit ImageNormalizer and nucleus-reference scaling"
     }
   ],
-  "repository_updates": [
-    "Preserved the existing ACCEPTED/SCORED status clarification in docs/quickstart.md."
-  ]
+  "repository_updates": []
 }
