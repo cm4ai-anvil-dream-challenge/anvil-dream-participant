@@ -26,6 +26,14 @@ PARTICIPANT_GUIDES = {
     "docs/proticelli.md",
     "docs/reading-list.md",
     "docs/contract.md",
+    "docs/anvil-compute.md",
+    "docs/data.md",
+    "docs/evaluation.md",
+    "docs/how-to-participate.md",
+    "docs/news-and-timeline.md",
+    "docs/participants-and-teams.md",
+    "docs/results.md",
+
 }
 
 
@@ -85,6 +93,8 @@ def _sdist_path_is_public(name: str) -> bool:
         relative = "/".join(parts)
         return relative in PARTICIPANT_GUIDES or relative in {
             "docs/synapse-pages.json", "docs/assets", "docs/assets/challenge-banner.png",
+            "docs/assets/data-hpa-gallery.png", "docs/assets/data-hpa-channels-mask.png",
+            "docs/assets/data-hpa-masking.png",
         }
     if parts[0] == "scripts":
         return "/".join(parts) in SDIST_MAINTAINER_FILES

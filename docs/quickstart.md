@@ -1,14 +1,18 @@
+# Quickstart
+
 This guide walks you through using the [AnVIL DREAM participant CLI tool](https://github.com/cm4ai-anvil-dream-challenge/anvil-dream-participant) to build, package, and submit your model. Once submitted, your pipeline will run against our hidden evaluation dataset.
 
-> **Before you start:** you must be registered for the challenge and a Certified User. See [How to participate](how-to-participate.md) for more details.
+> **Before you start:** you must be registered for the challenge and a Certified User before you can submit. See [How to participate](how-to-participate.md) for more details.
 
 Follow the steps below to set up the CLI, prepare your items, and submit.
+
+
 
 ---
 
 ## 1. Install the CLI
 
-> **One-time setup.** If you've already installed the CLI, skip to [Step 2](#2-configure-authentication).
+> **One-time setup.** If you've already installed the CLI, skip to **Step 2 - Configure authentication**.
 
 You need Python 3.12 or newer. Install the participant release from PyPI into its own virtual environment. This guide uses `venv`, but `uv`, `conda`, and others also work (the activate command will differ). These commands work from any directory:
 
@@ -28,27 +32,29 @@ Each time you open a new terminal, reactivate the environment:
 . "$HOME/dream-participant-venv/bin/activate"
 ```
 
-The participant release includes PNG and optional-mask support, and no repository access is needed for installation. To install from source (like for package development or contribution), see the [participant CLI guide](cli.md).
+The participant release includes PNG and optional-mask support, and no repository access is needed for installation. To install from source (like for package development or contribution), see the [Command Line Tool](cli.md).
 
 <details>
-<summary>Working in AnVIL?</summary>
+<summary>> Working in AnVIL?</summary>
 
-In the AnVIL RStudio Bioconductor VM, use **Tools > Terminal > New Terminal**, not the R console. Set `PIP_USER=false` to stop pip from forcing a user-site install.
-
-If `python3.12` is unavailable, use another installed Python 3.12+ executable, or ask the organizers for a supported VM setup.
+> **Working in AnVIL?**
+> In the AnVIL RStudio Bioconductor VM, use **Tools > Terminal > New Terminal**, not the R console. Set `PIP_USER=false` to stop pip from forcing a user-site install.
+>
+> If `python3.12` is unavailable, use another installed Python 3.12+ executable, or ask the organizers for a supported VM setup.
 
 </details>
 
 <details>
-<summary>Extra WDL validation?</summary>
+<summary>> Extra WDL validation</summary>
 
-The CLI checks your WDL with miniwdl; Java is not required. For an independent Cromwell parser check, follow the [WOMtool validation instructions](https://github.com/broadinstitute/cromwell/blob/develop/docs/WOMtool.md). Parser validation does not replace running your model on development inputs.
+> **Extra WDL validation**
+> The CLI checks your WDL with miniwdl; Java is not required. For an independent Cromwell parser check, follow the [WOMtool validation instructions](https://github.com/broadinstitute/cromwell/blob/develop/docs/WOMtool.md). Parser validation does not replace running your model on development inputs.
 
 </details>
 
 ## 2. Configure authentication
 
-> **One-time setup.** If you've already logged in, skip to [Step 3](#3-prepare-your-model-and-wdl).
+> **One-time setup.** If you've already logged in, skip to **Step 3 - Prepare your model and WDL**.
 
 The CLI is dependent on authentication to both Synapse and Google Cloud.
 
@@ -64,7 +70,7 @@ The CLI is dependent on authentication to both Synapse and Google Cloud.
 
    This will create a `.synapseConfig` file in your home directory.
 
-<mark>Note: keep all tokens out of the commands, the WDL file, containers, and submitted files.</mark>
+<mark>Keep all tokens out of the commands, the WDL file, containers, and submitted files.</mark>
 
 ### Google Cloud
 
@@ -88,7 +94,7 @@ No login required. The CLI will derive your registered email from Terra Sam - do
 
 ## 3. Prepare your model and WDL
 
-Your model can use any framework that implements the interface. ProtiCelli is only an example, not a requirement. For full context, read the [submission contract](contract.md), which defines the full WDL interface and prediction outputs.
+Your model can use any framework that implements the interface. ProtiCelli is only an example, not a requirement. For full details, read the [submission contract](contract.md), which defines the full WDL interface and prediction outputs.
 
 ### Environment Constraints
 
@@ -96,7 +102,7 @@ One NVIDIA L4 GPU (`g2-standard-8`) with 8 CPUs, 32 GB memory, and 75 GB SSD; wi
 
 ### Model input files
 
-Your script should read in a JSON array created by `~{write_json(inputs)}` (command placeholder in your WDL file).  Each record will contain a prediction ID, three aligned reference images, and an explicit protein FASTA file. The optional `mask_image` will receive a cell mask when available.
+Your script should read in a JSON array created by `~{write_json(inputs)}` (command placeholder in your WDL file). Each record will contain a prediction ID, three aligned reference images, and an explicit protein FASTA file. The optional `mask_image` will receive a cell mask when available.
 
 ### Expected model output files
 
@@ -120,52 +126,53 @@ Create a `workflow.wdl` that defines your execution pipeline. To ensure compatib
 * Only the `docker` attribute declared in the `runtime` block
 * Do not declare a task-level manifest file. Keep `write_json(inputs)` in the `command` block so file paths are generated correctly
 
-
 **Container Implementation**
 
 All model code, dependencies, and execution scripts must be baked directly into your container image. The entrypoint script (`predict.py`) and command-line flags shown in the example below are customizable templates for your container. Adjust script names, flags, and model hyperparameters (such as batch size and random seeds) inside the WDL `command` block or model code as needed.
 
 <details>
-<summary>Example WDL template</summary>
+<summary>> Example WDL template</summary>
 
-This template uses the current interface.
-
-```wdl
-version 1.0
-
-struct PredictionInput {
-  String prediction_id
-  File microtubules_image
-  File nucleus_image
-  File er_image
-  File fasta_file
-  File? mask_image
-}
-
-task Predict {
-  input {
-    Array[PredictionInput] inputs
-    File weights
-  }
-
-  command <<<
-    mkdir -p predictions
-    python3 /opt/model/predict.py \
-      --inputs-manifest "~{write_json(inputs)}" \
-      --weights "~{weights}" \
-      --output predictions
-  >>>
-
-  output {
-    Array[File] predictions = glob("predictions/*.png")
-  }
-
-  runtime {
-    docker: "ghcr.io/ORG/IMAGE@sha256:REPLACE_WITH_YOUR_IMAGE_DIGEST"
-  }
-}
-```
-
+> **Example WDL template**
+>
+> This template uses the current interface.
+>
+> ```wdl
+> version 1.0
+>
+> struct PredictionInput {
+>   String prediction_id
+>   File microtubules_image
+>   File nucleus_image
+>   File er_image
+>   File fasta_file
+>   File? mask_image
+> }
+>
+> task Predict {
+>   input {
+>     Array[PredictionInput] inputs
+>     File weights
+>   }
+>
+>   command <<<
+>     mkdir -p predictions
+>     python3 /opt/model/predict.py \
+>       --inputs-manifest "~{write_json(inputs)}" \
+>       --weights "~{weights}" \
+>       --output predictions
+>   >>>
+>
+>   output {
+>     Array[File] predictions = glob("predictions/*.png")
+>   }
+>
+>   runtime {
+>     docker: "ghcr.io/ORG/IMAGE@sha256:REPLACE_WITH_YOUR_IMAGE_DIGEST"
+>   }
+> }
+> ```
+>
 > **Important Notes**
 > * **Do not include:** credentials, symlinks, or the reserved paths `predictions` and `__dream_runtime_assets.tar`
 > * Run supporting scripts with their interpreter (for example `python script.py`), because executable bits are not preserved
@@ -189,7 +196,7 @@ The image must target the `linux/amd64` platform, so build it using Docker Build
 
 3. Make the image public, so that anyone can pull it without credentials
 4. Copy its digest into your WDL file as `ghcr.io/ORG/IMAGE@sha256:...`. Mutable tags (like `:release`) are not accepted.
-5. **Test the new image!** The CLI can check your image's public access and `linux/amd64` support, but it cannot prove your model will run. Before submitting, we recommend running your prediction command on development inputs. Check that the weights load and that the uint8 PNG outputs are correctly named.
+5. **Test the new image!** The CLI tool can check your image's public access and `linux/amd64` support, but it cannot prove your model will run. Before submitting, we recommend running your prediction command on development inputs. Check that the weights load and that the uint8 PNG outputs are correctly named.
 
 
 ## 5. Submit
@@ -202,6 +209,8 @@ export DREAM_EVALUATION_ID=9620108
 
 Run the command that matches where your files are, replacing the example paths with your own. Both commands will generate the required tarfile and manifest for you, as well as create or reuse your private Synapse submission project.
 
+{row}
+{column width=6}
 
 ### Files on your computer: `submit`
 
@@ -214,6 +223,9 @@ anvil-dream-participant submit \
   --evaluation-id "$DREAM_EVALUATION_ID" \
   --name my-model-v1
 ```
+
+{column}
+{column width=6}
 
 ### Files in an AnVIL bucket: `submit-anvil`
 
@@ -231,6 +243,8 @@ anvil-dream-participant submit-anvil \
 
 To use a different bucket, set `SUBMISSION_BUCKET` to its `gs://` URL and make sure the VM can access it. Allow temporary disk space for the downloaded files and the submission tarfile.
 
+{column}
+{row}
 
 ### Command options
 
@@ -245,20 +259,22 @@ To use a different bucket, set `SUBMISSION_BUCKET` to its `gs://` URL and make s
 | Both | `--team` | Optional. Pass your Synapse team ID to submit as a team |
 
 <details>
-<summary>Include a whole folder with `--recursive`</summary>
+<summary>> Include a whole folder with `--recursive`</summary>
 
-```sh
-anvil-dream-participant submit-anvil \
-  --wdl "$SUBMISSION_BUCKET/path/to/workflow.wdl" \
-  --weights "$SUBMISSION_BUCKET/path/to/weights.pt" \
-  --files "$SUBMISSION_BUCKET/path/to/context/" \
-  --recursive \
-  --evaluation-id "$DREAM_EVALUATION_ID" \
-  --name my-model-v1
-```
-
-* `--recursive` requires `--files`. Each `--files` path is treated as a directory prefix (a trailing slash is optional), and paths below it are preserved. For example, `context/vocab/tokens.json` becomes `vocab/tokens.json`
-* You can give multiple directories, including ones in different buckets. Duplicate destination paths and file/directory conflicts are rejected before download.
+> **Include a whole folder with `--recursive`**
+>
+> ```sh
+> anvil-dream-participant submit-anvil \
+>   --wdl "$SUBMISSION_BUCKET/path/to/workflow.wdl" \
+>   --weights "$SUBMISSION_BUCKET/path/to/weights.pt" \
+>   --files "$SUBMISSION_BUCKET/path/to/context/" \
+>   --recursive \
+>   --evaluation-id "$DREAM_EVALUATION_ID" \
+>   --name my-model-v1
+> ```
+>
+> * `--recursive` requires `--files`. Each `--files` path is treated as a directory prefix (a trailing slash is optional), and paths below it are preserved. For example, `context/vocab/tokens.json` becomes `vocab/tokens.json`
+> * You can give multiple directories, including ones in different buckets. Duplicate destination paths and file/directory conflicts are rejected before download.
 
 </details>
 
@@ -307,4 +323,3 @@ A status of `RECEIVED` means Synapse has received your submission into the queue
 | Evaluation fails after `RECEIVED` | Read `submission-status`, check the error and output contract, and share the submission ID with organizers. |
 
 Still stuck? Post your question to the [discussion board](https://www.synapse.org/Synapse:syn77349038/discussion/default)!
-When asking for help, include your command with secrets removed, submission ID if returned, and the error log. Never share access tokens.

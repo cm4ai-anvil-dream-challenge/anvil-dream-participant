@@ -78,7 +78,7 @@ class ParticipantConfig:
 
 
 PARTICIPANT_QUEUE_NAME = "CM4AI AnVIL DREAM Challenge Evaluation"
-PARTICIPANT_EVALUATION_ID = "9620030"
+PARTICIPANT_EVALUATION_ID = "9620108"
 def participant_config_for_evaluation(
     evaluation_id: str = PARTICIPANT_EVALUATION_ID,
 ) -> ParticipantConfig:

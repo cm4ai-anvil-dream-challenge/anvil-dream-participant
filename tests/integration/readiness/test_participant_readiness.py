@@ -194,7 +194,7 @@ class SynapseReadinessTests(unittest.TestCase):
         )
         self.assertEqual(args.anvil_email, "person@example.org")
         self.assertIsNone(args.other_files)
-        self.assertEqual(args.evaluation_id, "9620030")
+        self.assertEqual(args.evaluation_id, "9620108")
 
     def test_submit_anvil_parses_gcs_paths_and_is_listed_as_separate_command(self) -> None:
         args = build_parser().parse_args(
@@ -240,7 +240,7 @@ class SynapseReadinessTests(unittest.TestCase):
                 ),
                 0,
             )
-        self.assertEqual(submit.call_args.args[0].synapse.evaluation_id, "9620030")
+        self.assertEqual(submit.call_args.args[0].synapse.evaluation_id, "9620108")
 
     def test_submit_anvil_rejects_a_claimed_email(self) -> None:
         with self.assertRaises(SystemExit):
@@ -258,7 +258,7 @@ class SynapseReadinessTests(unittest.TestCase):
 
     def test_submit_uses_the_given_evaluation_id_without_config(self) -> None:
         routes = (
-            (None, "9620030", "CM4AI AnVIL DREAM Challenge Evaluation"),
+            (None, "9620108", "CM4AI AnVIL DREAM Challenge Evaluation"),
             ("9620087", "9620087", "Synapse Evaluation 9620087"),
             ("1234567", "1234567", "Synapse Evaluation 1234567"),
         )
@@ -345,7 +345,7 @@ class SynapseReadinessTests(unittest.TestCase):
                     ),
                     0,
                 )
-        self.assertEqual(submit.call_args.args[0].synapse.evaluation_id, "9620030")
+        self.assertEqual(submit.call_args.args[0].synapse.evaluation_id, "9620108")
 
     def test_registration_commands_are_website_only(self) -> None:
         with self.assertRaises(SystemExit):
