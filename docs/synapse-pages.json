@@ -1,13 +1,17 @@
 {
   "project_id": "syn74338981",
+  "project_name": "CM4AI-AnVIL DREAM Challenge - staging",
   "root_wiki_id": "639954",
-  "imported_at": "2026-10-12T19:43:42.791572+00:00",
+  "imported_at": "2026-10-19T21:36:59.659325+00:00",
+  "mapping_source": "Live Synapse wiki headers and page metadata, discovered on import.",
   "formatting_changes": [
-    "Synapse wiki links changed to local Markdown links where imported.",
-    "Synapse heading markers and table-of-contents widget made GitHub-compatible.",
-    "Banner attachment copied locally; registration widget links to its Synapse team.",
-    "Old generated mirror headers removed; source identities retained in this manifest.",
-    "Relative code links adjusted for the docs directory."
+    "Synapse wiki links changed to local Markdown links for all imported pages.",
+    "Synapse heading markers and table-of-contents widgets made GitHub-compatible.",
+    "Referenced image attachments copied locally with source file handles and checksums.",
+    "Interactive registration, participant, and leaderboard widgets link to their live Synapse pages.",
+    "Generated mirror headers and non-rendered HTML comments removed.",
+    "Relative source-code links resolved against their original repository documents.",
+    "Trailing prose whitespace removed; Markdown hard breaks represented with HTML line breaks."
   ],
   "pages": [
     {
@@ -18,116 +22,207 @@
       "etag": "a5bc0acb-b04e-47cc-95c6-0aebdd485ab8",
       "modified_on": "2026-10-07T20:40:00.398Z",
       "source_sha256": "c9dac85796d3bd11e8a18848fb304be7af6eb4e2b756303e5734b11cd47532d0",
-      "imported_sha256": "e7a60bc13fc74a439746065c4a1e3d38a906572491aedffd140fdd01d3ba1cf4"
+      "imported_sha256": "e9c2800df41ef35e58cee8cbd76047e8da87e092c4c2cf5cc91e942400ce1d18"
     },
     {
       "source": "docs/challenge-rules.md",
       "title": "Challenge Rules",
       "wiki_id": "642246",
       "parent_wiki_id": "639954",
-      "etag": "a93cc3b9-1f6f-41e3-8db6-8cbe91e517f0",
-      "modified_on": "2026-09-15T21:45:30.669Z",
-      "source_sha256": "d218378c10d17f202b7080b8803ae31d238d681b3bc236a914332658f9c8464b",
-      "imported_sha256": "dd01007f3a566a1d15dcbc0bc9061d588a3dd1386ed58e4694b80555b91cd2b8"
+      "etag": "49ef1012-d051-4a3e-8cb9-27bff203343d",
+      "modified_on": "2026-10-19T14:08:58.070Z",
+      "source_sha256": "96f8fb081dad362162d6e85035a9786f2afd314dbb2b98b4ea4075b06d5c911a",
+      "imported_sha256": "121ae512d5a7eceb33edf188f94f32575edbe5018766a5b29cc6acf5b44cec05"
+    },
+    {
+      "source": "docs/how-to-participate.md",
+      "title": "How to participate",
+      "wiki_id": "643857",
+      "parent_wiki_id": "639954",
+      "etag": "5c5d1e00-78d9-4633-9b36-5a500b52e61f",
+      "modified_on": "2026-10-15T10:07:09.906Z",
+      "source_sha256": "5ed2d2610d6c400625e2728886cce6ecb9d443618459f7b7a2c6010264bb2aab",
+      "imported_sha256": "2dc456fbd7abbf516411ee1b1ac196e9b6d1159547bcb556dd13e63e73a1760e"
     },
     {
       "source": "docs/motivation-and-background.md",
       "title": "Motivation & Background",
       "wiki_id": "640956",
       "parent_wiki_id": "639954",
-      "etag": "37cf2c12-e558-4d73-a5f6-10416d7259d8",
-      "modified_on": "2026-08-24T23:01:54.767Z",
-      "source_sha256": "adec1daf715b364ec9a867d5ce68302f74853641f746ac1dd5dc830157ecc3eb",
-      "imported_sha256": "ea40f8c929408c51ba17f3ed8f41b2b7456ca9e108233f17b93c209bddea541c"
+      "etag": "5e535113-6854-42d2-b572-867b5ac703de",
+      "modified_on": "2026-10-15T19:19:11.609Z",
+      "source_sha256": "e11a8d83c22665402e68a4b4e741f5d0b5e5902d23aecf6593ea8e5dc02bbd1b",
+      "imported_sha256": "25043a4458242cccf3b6e65b56538db6e6140dfbf44817f83c801c97792c001c"
+    },
+    {
+      "source": "docs/news-and-timeline.md",
+      "title": "News & Timeline",
+      "wiki_id": "640955",
+      "parent_wiki_id": "639954",
+      "etag": "f381e339-335d-41ff-8f4e-1d069d631e7d",
+      "modified_on": "2026-10-07T21:40:07.115Z",
+      "source_sha256": "74306d149f84be07917d5bc204cddb0b221df4a8b1fb213e3a51c3fba5783767",
+      "imported_sha256": "2bb35a43935b5be85203aa2840ea1c899dc124ac59d6caba894610b6d517f4ae"
+    },
+    {
+      "source": "docs/results.md",
+      "title": "Results",
+      "wiki_id": "642816",
+      "parent_wiki_id": "639954",
+      "etag": "d24d5cbb-2b95-417e-9bb4-eb0635b24228",
+      "modified_on": "2026-10-15T18:15:04.865Z",
+      "source_sha256": "b4282139bcb0d18736ce3a22c3e9a287b1d974b2502a7e641faa55f561eca2ea",
+      "imported_sha256": "0ae3a29a2f0f9b006c1ffee5d446adf98eb4983c8874a2c2ea065f59c9195ec1"
     },
     {
       "source": "docs/challenge.md",
       "title": "The Challenge",
       "wiki_id": "642240",
       "parent_wiki_id": "639954",
-      "etag": "fd35a371-7efb-4394-8fb9-1296b5bed7d8",
-      "modified_on": "2026-08-26T00:53:44.350Z",
-      "source_sha256": "8c48d77dd40c489376407666d47e5f7c2c4bda5e74dd6d2b4311206a9af1a68f",
-      "imported_sha256": "04c558630dbace5b64f78dfd07c4fa055a017bef9e599c0fce4255104a42fe19"
+      "etag": "0cb7500c-81b6-4b9b-8e57-d49128614e94",
+      "modified_on": "2026-10-14T22:48:46.939Z",
+      "source_sha256": "3e0510cc59792ae816c65801d3ec213a822230da86ac768f05aa0fe2028ae1bf",
+      "imported_sha256": "e1f1c2d3679a02667a4b2421d3c236ae3f441aa8e8955b0368930b3fe126f0c2"
     },
     {
-      "source": "docs/benchmark.md",
-      "title": "Participant Benchmark",
-      "wiki_id": "643842",
+      "source": "docs/anvil-compute.md",
+      "title": "AnVIL Compute",
+      "wiki_id": "642239",
       "parent_wiki_id": "642240",
-      "etag": "3dc86870-1f92-4531-9e46-a91d430fd699",
-      "modified_on": "2026-10-09T18:51:41.229Z",
-      "source_sha256": "0862fa0ba64c59c0ea8d2017a8a8cc3b8c9bdc921f4a3fab852b7ca37a33db41",
-      "imported_sha256": "1cbb875c266fbe0347b671b7c3b009a7f337dfe72046f27608cda12c2570d10e"
+      "etag": "266cc78f-8338-40a7-9e49-200fe7e80e19",
+      "modified_on": "2026-10-15T21:53:11.059Z",
+      "source_sha256": "5ecd6f6bb3ea40ea64420c55d67d848d03899963176e9e5af0cf49f25f39915b",
+      "imported_sha256": "6bd08d641d8052e05f83b66dbe3e1afe105541e9902660c7b5b645e6952db4b3"
     },
     {
-      "source": "docs/cli.md",
-      "title": "Participant CLI",
-      "wiki_id": "643841",
+      "source": "docs/data.md",
+      "title": "Data",
+      "wiki_id": "642238",
       "parent_wiki_id": "642240",
-      "etag": "4ec84bb0-7dd6-4118-b2eb-3811ec2e21c4",
-      "modified_on": "2026-10-09T19:55:10.567Z",
-      "source_sha256": "73aeb918fac79e4e1ee64208559b71fdb41e1ff1896c0f14016f483a37863329",
-      "imported_sha256": "2863298b71d5ec10cdbacda2f0f3c4ed9225d7fc879f4dc0d71c4adc34c66361"
+      "etag": "8365544f-f10f-47cd-9287-c20c84ca1324",
+      "modified_on": "2026-10-19T21:23:26.126Z",
+      "source_sha256": "af1f0e3cfe3ce12ddca6b817d23c32591d2dae65a13d1c1f7432072acba076f8",
+      "imported_sha256": "bb7bb81ab5b34c20482d264c0b97918c7a4de61e2f4ecbe79c58e8409d45a54a"
     },
     {
-      "source": "docs/container-images.md",
-      "title": "Participant Container Images",
-      "wiki_id": "643840",
+      "source": "docs/evaluation.md",
+      "title": "Evaluation",
+      "wiki_id": "642243",
       "parent_wiki_id": "642240",
-      "etag": "493b7f6b-5342-45ed-8eb3-958069d59f03",
-      "modified_on": "2026-10-09T19:02:18.319Z",
-      "source_sha256": "87920d01b75c11ed409830d3e918595f6d6643124bc8e7f6b77507124c98f6f7",
-      "imported_sha256": "f4a383082f88fa9526ef27c9865425a04d92f530d010be0926b1e406ffdc992c"
-    },
-    {
-      "source": "docs/quickstart.md",
-      "title": "Participant Quickstart",
-      "wiki_id": "643829",
-      "parent_wiki_id": "642240",
-      "etag": "6dc32dd4-7424-4d23-aa85-319978953b51",
-      "modified_on": "2026-10-09T20:03:17.109Z",
-      "source_sha256": "6975dc9947335444808447006fcdef03ab73f5a2b32045c4bd83db1a2de81974",
-      "imported_sha256": "203f8943f597224249471d0f89be6b64cb488790d4327e6ceb72fe2f5362c4bc"
-    },
-    {
-      "source": "docs/proticelli.md",
-      "title": "ProtiCelli Participant Example",
-      "wiki_id": "643843",
-      "parent_wiki_id": "642240",
-      "etag": "06d7df77-c184-4f64-9e5f-64491875fc08",
-      "modified_on": "2026-10-09T19:15:19.934Z",
-      "source_sha256": "6e7723ebb22e497462b67edd2ce26c0fa61e03907907e1293004eab208cc1e37",
-      "imported_sha256": "33714574506b42ba84ae1193fa8163b452e8937914c5989ef0c1d36f8de71a15"
+      "etag": "72b22a48-1c6f-4798-bfdf-9d21beb11aca",
+      "modified_on": "2026-10-16T20:47:25.490Z",
+      "source_sha256": "69edcece36bdb5962d42773d91408a63a7f3e3f4bf55f4d73bfe0b207463b7f5",
+      "imported_sha256": "2eb452a257f90de00132a8afae1317431ab579e03b53426b070dd1e72047d2fa"
     },
     {
       "source": "docs/reading-list.md",
       "title": "Reading List",
       "wiki_id": "643278",
       "parent_wiki_id": "642240",
-      "etag": "09f44222-e899-4ca7-b904-2c73263a4e84",
-      "modified_on": "2026-09-08T21:28:30.441Z",
-      "source_sha256": "fc3b908e6bd69de02453ccf21cfb1d52dad90c06441e638d3ee8b80ed9b53ded",
-      "imported_sha256": "8d464e07e590206b7b734be285fd38fc114952c6e5d228085a0e376ed4986082"
+      "etag": "9ad3a0e3-9477-4cec-8af7-4f817ad8da68",
+      "modified_on": "2026-10-14T22:44:57.220Z",
+      "source_sha256": "0acf69273818195be7fd8204061f5964f5fbb39277890b7c2f1ca81c64d5d289",
+      "imported_sha256": "515290472cde99a656961b88d06bfba938c66355a843b85c2626114fa3815072"
     },
     {
       "source": "docs/contract.md",
       "title": "Submission Format",
       "wiki_id": "643828",
       "parent_wiki_id": "642240",
-      "etag": "7f5bc4af-1b07-4c6f-a095-0d6204fc37af",
-      "modified_on": "2026-10-09T20:03:18.548Z",
-      "source_sha256": "dc0698586c52955c9f39304fdc40f34c1ec2ee79f19d7276354a244de59d05bb",
-      "imported_sha256": "84faa7ba8cfd0a96992c702314d3232fe1f01f1e9ac32fd8fcfc2b50bf74918a"
+      "etag": "6f702f32-2b63-4b8c-a75d-315d1adc9b7d",
+      "modified_on": "2026-10-14T21:25:41.258Z",
+      "source_sha256": "7d1c479f3b99f3c53d82fb3d1904caf0ef2369faa4aa64137e93fd4b1d9b0337",
+      "imported_sha256": "24945e0e2d756b0148e8e1bca6f04284d90d7893983e9d4bb1683d11573a5a10"
+    },
+    {
+      "source": "docs/participants-and-teams.md",
+      "title": "Participants & Teams",
+      "wiki_id": "642245",
+      "parent_wiki_id": "642816",
+      "etag": "94546819-9be9-4f46-8fc8-a98789a01f23",
+      "modified_on": "2026-10-19T14:11:43.988Z",
+      "source_sha256": "e7cfd0b1e136b86e15aac729e437fe4db42f1bbbd17f655f38f9e66b7b5fffc0",
+      "imported_sha256": "09503483e49a70c091a940724a232df7ac6fa7a7ff57846c7778c31005d66823"
+    },
+    {
+      "source": "docs/cli.md",
+      "title": "Command Line Tool",
+      "wiki_id": "643841",
+      "parent_wiki_id": "643857",
+      "etag": "defe1f80-00a4-4131-a711-d8ecc1669fc8",
+      "modified_on": "2026-10-14T21:29:31.400Z",
+      "source_sha256": "d4077b9f24e1d5c0e8ae236ac15aaf4cced0142b366b340690682a8bb8ae4684",
+      "imported_sha256": "d0719d5f855913944a0c2373d503f90aa2c7f6219d0e1e39ff723ba787fc9832"
+    },
+    {
+      "source": "docs/container-images.md",
+      "title": "Container Images",
+      "wiki_id": "643840",
+      "parent_wiki_id": "643857",
+      "etag": "b3957365-c592-4961-9f79-8f7d89e565b3",
+      "modified_on": "2026-10-14T21:29:07.701Z",
+      "source_sha256": "e77c2704aac964630d24590a4ce276cc806024d55f13251a4adaf70900fb2638",
+      "imported_sha256": "f4a383082f88fa9526ef27c9865425a04d92f530d010be0926b1e406ffdc992c"
+    },
+    {
+      "source": "docs/benchmark.md",
+      "title": "Evaluation",
+      "wiki_id": "643842",
+      "parent_wiki_id": "643857",
+      "etag": "dfa3d435-df71-4cb5-a064-4224e643bce5",
+      "modified_on": "2026-10-14T21:29:16.456Z",
+      "source_sha256": "e9ee0ee5dd86035cda2399183e852f59f19bbafe35a0f1525d2d7381e8b72d2e",
+      "imported_sha256": "b85e891bce70f4c65d1b4a202238a069a34824861474d815c820697c5b06cbd6"
+    },
+    {
+      "source": "docs/proticelli.md",
+      "title": "ProtiCelli Example",
+      "wiki_id": "643843",
+      "parent_wiki_id": "643857",
+      "etag": "893b3d20-3d76-4e28-8836-7c940a505d39",
+      "modified_on": "2026-10-14T21:28:59.677Z",
+      "source_sha256": "f368c24e97ac778bcb87ddaba8cb02fec266df8aa79287e4da658d09a3aa06c4",
+      "imported_sha256": "e49c372633f603357a689cdd9cb18d4129291043ea3d22006f0c1f6225088491"
+    },
+    {
+      "source": "docs/quickstart.md",
+      "title": "Quickstart",
+      "wiki_id": "643829",
+      "parent_wiki_id": "643857",
+      "etag": "ce4d5009-a1c9-4523-af4e-f9c52ff5e6e6",
+      "modified_on": "2026-10-15T18:01:55.090Z",
+      "source_sha256": "fa5021b67ecfb4d7b6da137022c44444d71e3b0dabb6e36657794d81b00d2d8c",
+      "imported_sha256": "7429cd8dabf08507a03e9f45fc8979b6bb8c10957afe5c6e251f033549bff504"
     }
   ],
   "attachments": [
     {
-      "source": "docs/assets/challenge-banner.png",
       "wiki_id": "639954",
       "file_handle_id": "177505770",
       "original_filename": "CM4AI_AnVIL_DREAM_banner.png",
-      "sha256": "bbda42c8402870d3e4278493b90ff3a0a31ba541ebc4f624e40ab303542d0368"
+      "sha256": "bbda42c8402870d3e4278493b90ff3a0a31ba541ebc4f624e40ab303542d0368",
+      "source": "docs/assets/challenge-banner.png"
+    },
+    {
+      "wiki_id": "642238",
+      "file_handle_id": "178205707",
+      "original_filename": "HPA_Crop_Channels_Mask.png",
+      "sha256": "51bba0741629cb2da65ca64037db1183120cf4f0b4e520c4a379980768e3da1a",
+      "source": "docs/assets/data-hpa-channels-mask.png"
+    },
+    {
+      "wiki_id": "642238",
+      "file_handle_id": "178205731",
+      "original_filename": "HPA_Crop_Masking.png",
+      "sha256": "9660ed803f67bd1f2cc8fd8b70f7872c1cd3950ca629442081daaab1a96c16dc",
+      "source": "docs/assets/data-hpa-masking.png"
+    },
+    {
+      "wiki_id": "642238",
+      "file_handle_id": "178205658",
+      "original_filename": "image (5).png",
+      "sha256": "dba1c8b05afb26e818b9ec4ab187ffc7b753fd4bc495805328fea705fb1c6774",
+      "source": "docs/assets/data-hpa-gallery.png"
     }
   ],
   "known_differences": [
@@ -148,8 +243,6 @@
     }
   ],
   "repository_updates": [
-    "Updated Python imports and published package install commands.",
-    "Updated prediction contract and WDL examples to uint8 PNG.",
-    "Documented current ProtiCelli preprocessing and intensity scaling."
+    "Preserved the existing ACCEPTED/SCORED status clarification in docs/quickstart.md."
   ]
 }

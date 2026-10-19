@@ -1,9 +1,9 @@
-# Public evaluation benchmark
+# User evaluation tools
 
 This package benchmarks an already merged `image-results.jsonl` file. The organizer grades
 individual prediction images and gathers their results into that file. The benchmark reads the
 per-image results, computes evaluation-wide metrics and a score, and writes three JSON files.
-It does not need prediction PNGs, target images, shard receipts, or GCS access.
+It does not need prediction TIFFs, target TIFFs, shard receipts, or GCS access.
 
 The implementation is [`evaluation.py`](../benchmarking/evaluation.py). The organizer calls the same module from
 `benchmark.wdl`. The participant package
@@ -37,7 +37,7 @@ target pixel values for one `512 × 512` image, and each sum runs over its 262,1
 | `root_mean_squared_error` | Square root of `squared_error_sum / 262144`. |
 | `cosine_similarity` | `dot_product_sum / (sqrt(prediction_square_sum) × sqrt(target_square_sum))`, clamped to `[-1, 1]`, or `null` if either norm is zero. |
 
-The grader computes these values from prediction and target images using float64 arithmetic.
+The grader computes these values from prediction and target TIFFs using float64 arithmetic.
 Numbers must be finite; the three derived metrics must agree with the sums. The benchmark
 adds the sums across images, takes the largest image-level maximum error, and recalculates
 evaluation-wide MAE, RMSE, and cosine similarity. The fixed image size supplies the pixel count.
@@ -45,7 +45,7 @@ The command takes the dataset ID once, so rows do not repeat it.
 
 The organizer's gather task checks `sample_id` and row order against the prediction receipts.
 Filenames, prediction hashes, and shard numbers stay in organizer records rather than in each
-JSONL row. The current target images are private. Participants can benchmark a supplied JSONL
+JSONL row. The current target TIFFs are private. Participants can benchmark a supplied JSONL
 file, but cannot recreate the official rows from predictions alone without the targets.
 
 This is one valid JSONL row. It describes an identical all-zero prediction and target, so
@@ -60,11 +60,11 @@ the file instead of loading all rows into memory.
 
 ## Run it
 
-Install the published participant package and pass the merged file:
+From a source checkout, install the participant project and pass the merged file:
 
 ```sh
-python -m pip install --upgrade anvil-dream-participant
-python -m anvil_dream_participant.benchmarking.evaluation \
+python -m pip install -e ./participant
+python -m dream_participant.benchmarking.evaluation \
   --image-results image-results.jsonl \
   --dataset-id YOUR_DATASET_ID \
   --comparison-report comparison-report.json \

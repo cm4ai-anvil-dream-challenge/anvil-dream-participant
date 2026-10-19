@@ -4,42 +4,27 @@ This example receives one lane of independently pinned, pre-aligned images and
 protein FASTA files. Its `PredictionInput` record contains:
 
 - `prediction_id`: stable identity used to name the prediction
-- `microtubules_image`, `nucleus_image`, and `er_image`: separate 512 x 512 uint8
+- `microtubules_image`, `nucleus_image`, and `er_image`: separate 2D float32
   TIFFs or 8-bit grayscale PNGs in ProtiCelli's channel order
 - `fasta_file`: an explicit FASTA containing one or more protein sequences
 - `mask_image`: an optional localized cell mask, validated by the adapter
 
 The public task receives no grading target, target-protein label, or cell-line
-label. The organizer keeps the 2D target image in private storage and supplies it
+label. The organizer keeps the 2D target TIFF in private storage and supplies it
 only to the trusted grading workflow. The images are assumed to be spatially
-aligned already. The adapter accepts uint8 image pixels in the 0–255 range and applies
-the model normalization before inference.
+aligned already. Their float32 values must be finite and normalized for the
+model; the organizer does not impose one fixed numeric range.
 
 The command placeholder `~{write_json(inputs)}` creates the JSON array of
 localized file paths. Keep it in the command. The prediction script reads each
 FASTA once, resolves each unique sequence once, and chooses the strongest
 supported BLAST match across all sequences in each file. Higher bitscore wins,
 then lower e-value; ties keep FASTA order. It stacks image planes in
-microtubules/nucleus/ER order, and writes `<prediction_id>.png`. It runs local
+microtubules/nucleus/ER order, and writes `<prediction_id>.tiff`. It runs local
 BLAST against the reference database in the weights ZIP, walks hits by score
 until it finds a gene in the model vocabulary, and fails the task explicitly if
 no hit is supported. The selected accession, hit rank, sequence digest, and
-score are stored in each output PNG's `provenance` text field for provenance.
-
-## Image normalization and output encoding
-
-The adapter explicitly applies upstream `ImageNormalizer(bit_depth=8)` to each
-cell. It places the reference channels in the upstream four-channel layout,
-leaves the unavailable protein channel at zero, and then extracts the normalized
-microtubule, nucleus, and ER channels for inference. It retains the clipped
-nucleus maximum as the per-cell intensity scale, with a reference-channel
-fallback when the nucleus scale is zero.
-
-To write a prediction, it multiplies the model output by that retained scale,
-clips to 0–255, rounds to the nearest integer, and casts to uint8. This matches
-the adapter's normalization scale; it does not use the older fixed
-`prediction / 1.3 * 255` conversion. Model inference remains floating point.
-PNG provenance records the protein match, sequence digest, and nucleus scale.
+score are stored in each output TIFF's description for provenance.
 
 The expected outer weights ZIP layout is:
 
@@ -107,7 +92,7 @@ gene map is a TSV with `accession`, `hgnc_symbol`, and optionally
 `ensembl_gene_ids` columns.
 
 The checked-in WDL pins the published `quay.io/anvil_dream/blast-proticelli-example`
-image at digest `sha256:9e03517cc45ac0ad72386620d34bf24a54a12a297f65ab79a2c2ac9a9debfa18`.
+image at digest `sha256:59c9a92a5b0b73f1298bf4eac1b9a02d57d505d349c9cd71f43c99f5314d8bf8`.
 The Dockerfile pins ProtiCelli source commit `f894e78d2fbc0530c3637d5f7c457ead0738a5d0`,
 BLAST+ 2.17.0 with a tarball checksum, and a Python 3.12 base image digest. Its
 [runtime constraints](../examples/proticelli/model-runtime.constraints.txt) were read from the published image;
