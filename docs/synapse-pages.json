@@ -192,7 +192,7 @@
       "etag": "ce4d5009-a1c9-4523-af4e-f9c52ff5e6e6",
       "modified_on": "2026-10-15T18:01:55.090Z",
       "source_sha256": "fa5021b67ecfb4d7b6da137022c44444d71e3b0dabb6e36657794d81b00d2d8c",
-      "imported_sha256": "e808d2c5fe3934c025e107305021b995c9b471a334091d163db1d80eff70c6f7"
+      "imported_sha256": "fb72004e17e2a52a1da29c9cbfe9625948233db53c2cd490c2dab708739d4322"
     }
   ],
   "attachments": [
@@ -243,6 +243,7 @@
     }
   ],
   "repository_updates": [
-    "Removed developer setup and test instructions from docs/cli.md, streamlined participant guidance, and corrected public Python module names."
+    "Removed developer setup and test instructions from docs/cli.md, streamlined participant guidance, and corrected public Python module names.",
+    "Removed the quickstart pointer to source-install instructions that were removed from the participant CLI guide."
   ]
 }

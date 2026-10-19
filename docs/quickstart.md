@@ -32,7 +32,7 @@ Each time you open a new terminal, reactivate the environment:
 . "$HOME/dream-participant-venv/bin/activate"
 ```
 
-The participant release includes PNG and optional-mask support, and no repository access is needed for installation. To install from source (like for package development or contribution), see the [Command Line Tool](cli.md).
+The participant release includes PNG and optional-mask support.
 
 <details>
 <summary>> Working in AnVIL?</summary>
