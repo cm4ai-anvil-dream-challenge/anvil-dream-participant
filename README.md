@@ -1,12 +1,10 @@
-[![CM4AI AnVIL Cell Map Prediction DREAM Challenge](docs/assets/challenge-banner.png)](https://www.synapse.org/Synapse:syn74338981/wiki/639954)
+[How to participate](docs/how-to-participate.md) · [Quickstart](docs/quickstart.md) · [All documentation](docs/README.md)
 
-# AnVIL DREAM participant
+[![CM4AI AnVIL Cell Map Prediction DREAM Challenge](docs/assets/challenge-banner.png)](https://www.synapse.org/Synapse:syn74338981/wiki/639954)
 
 Predict protein localization from reference microscopy images and a protein sequence.
 Use the participant CLI to validate your workflow, package your model, and submit it
 to the CM4AI/AnVIL Cell Map Prediction DREAM Challenge.
-
-[How to participate](docs/how-to-participate.md) · [Quickstart](docs/quickstart.md) · [All documentation](docs/README.md)
 
 ## Install the CLI
 
