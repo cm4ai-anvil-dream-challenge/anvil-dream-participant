@@ -152,7 +152,7 @@
       "etag": "defe1f80-00a4-4131-a711-d8ecc1669fc8",
       "modified_on": "2026-10-14T21:29:31.400Z",
       "source_sha256": "d4077b9f24e1d5c0e8ae236ac15aaf4cced0142b366b340690682a8bb8ae4684",
-      "imported_sha256": "d0719d5f855913944a0c2373d503f90aa2c7f6219d0e1e39ff723ba787fc9832"
+      "imported_sha256": "6964c5c0df4dd661032e4ffe2431d971d6ae874c9c0fb8a5dae6264fdf42ca5e"
     },
     {
       "source": "docs/container-images.md",
@@ -242,5 +242,7 @@
       "current_implementation": "explicit ImageNormalizer and nucleus-reference scaling"
     }
   ],
-  "repository_updates": []
+  "repository_updates": [
+    "Removed developer setup and test instructions from docs/cli.md, streamlined participant guidance, and corrected public Python module names."
+  ]
 }

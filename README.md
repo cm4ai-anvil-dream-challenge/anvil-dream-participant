@@ -1,112 +1,61 @@
+[![CM4AI AnVIL Cell Map Prediction DREAM Challenge](docs/assets/challenge-banner.png)](https://www.synapse.org/Synapse:syn74338981/wiki/639954)
+
 # AnVIL DREAM participant
 
-`anvil-dream-participant` is a standalone Python distribution for submitting
-participant-authored WDL workflows. It installs the `anvil-dream-participant` command and the public
-`anvil_dream_participant` modules, including the runnable benchmark implementation. It does not
-include, import, or install the DREAM organizer package, and it does not read runtime assets
-from the parent repository.
+Predict protein localization from reference microscopy images and a protein sequence.
+Use the participant CLI to validate your workflow, package your model, and submit it
+to the CM4AI/AnVIL Cell Map Prediction DREAM Challenge.
 
-[Online participant documentation](https://www.synapse.org/Synapse:syn74338981/wiki/643841)
-is available without GitHub repository access.
+[How to participate](docs/how-to-participate.md) · [Quickstart](docs/quickstart.md) · [All documentation](docs/README.md)
 
-## Participant documentation
+## Install the CLI
 
-[Documentation index](docs/README.md) includes the challenge and participant pages
-imported from Synapse, with their original page IDs and source links.
-
-- [Quickstart](docs/quickstart.md) covers registration, setup, submission, and status.
-- [Submission contract](docs/contract.md) defines the WDL interface and prediction outputs.
-- [Container images](docs/container-images.md) covers publishing and digest pinning.
-- [Benchmark guide](docs/benchmark.md) defines metrics and local benchmarking.
-- [ProtiCelli example](docs/proticelli.md) explains the reference model adapter.
-- [Participant releases](docs/participant-releases.md) covers maintainer setup and PyPI publishing.
-
-These guides ship with the participant package. Organizer and maintainer documentation
-is maintained separately in the organizer repository.
-
-## Develop and test this package
-
-This directory is a standalone project. It contains its own docs, tests, and
-[ProtiCelli example](docs/proticelli.md). From this directory:
+Use Python 3.12 or newer:
 
 ```sh
 python3.12 -m venv .venv
 . .venv/bin/activate
-python -m pip install -e '.[dev]'
-python -B -m unittest discover -s tests -t . -v
-python -m build
-```
-
-The participant test suite and release build need no organizer checkout or package.
-The source distribution includes the tests. The wheel includes the public guides
-and runnable example assets and leaves development tests out.
-
-## Install a published release
-
-Install the participant package in Python 3.12 or newer:
-
-```sh
-python -m venv .venv
-. .venv/bin/activate
 python -m pip install --upgrade anvil-dream-participant
 anvil-dream-participant --help
-anvil-dream-participant submit --help
-anvil-dream-participant submit-anvil --help
-anvil-dream-participant submission-status --help
 ```
 
-The package includes the participant commands, WDL contract checks, private bundle format,
-Synapse client integration, Terra identity lookup, GCS staging, image validation, and status
-reporting. It does not need the organizer project to install or run.
+Follow the [quickstart](docs/quickstart.md) to configure authentication, prepare your
+WDL, container image, and weights, and submit your model. The CLI supports files
+on your computer and in an AnVIL workspace bucket.
 
-## Install from this source checkout
+## Prepare your submission
 
-To develop the participant package from a source checkout, run these commands from this
-directory:
+| Guide | What it covers |
+| --- | --- |
+| [How to participate](docs/how-to-participate.md) | Registration, teams, submissions, and results. |
+| [Quickstart](docs/quickstart.md) | Authentication, preparing your model, and making a submission. |
+| [Submission format](docs/contract.md) | The WDL interface, inputs, and prediction outputs. |
+| [Container images](docs/container-images.md) | Building, publishing, and pinning your model image. |
+| [Data](docs/data.md) | Available datasets, image channels, and file formats. |
+| [Evaluation](docs/evaluation.md) | What the challenge measures and how models are evaluated. |
+| [ProtiCelli example](docs/proticelli.md) | A reference model adapter for the submission interface. |
+| [Command line tool](docs/cli.md) | CLI commands, WDL validation, and the local benchmark. |
+
+The [documentation index](docs/README.md) also includes challenge rules, background,
+and the timeline. You can read the [challenge site on Synapse](https://www.synapse.org/Synapse:syn74338981/wiki/639954)
+without GitHub repository access.
+
+## Check your submission
+
+Save the submission ID returned by the CLI, then check its status:
 
 ```sh
-python -m venv .venv
-. .venv/bin/activate
-python -m pip install .
-anvil-dream-participant --help
+anvil-dream-participant submission-status --submission-id SUBMISSION_ID
 ```
 
-Install only this project for participant use. The parent repository's organizer package is
-not a dependency.
+See the [quickstart troubleshooting guide](docs/quickstart.md#troubleshooting) for
+help with authentication, containers, workflows, or submissions.
 
-## Use the WDL validator
+## Run the public benchmark
 
-The public module can validate a participant WDL without importing organizer code:
-
-```python
-from anvil_dream_participant.workflows.wdl import parse_participant_workflow
-
-workflow = parse_participant_workflow("participant.wdl")
-```
-
-The participant CLI uses this miniwdl-based contract validation when you submit. Java is not
-required. For an optional independent check with Cromwell WOMtool, see the
-[participant quickstart](docs/quickstart.md#4-install-the-participant-cli).
-
-## Run the benchmark
-
-The standalone participant package includes the exact benchmark implementation used by the
-organizer. Its Python entrypoint is [`anvil_dream_participant.benchmarking.evaluation`](benchmarking/evaluation.py);
-the corresponding organizer task is `BenchmarkEvaluation` in
-`organizer/workflows/templates/benchmark.wdl` in the source repository.
-The [benchmark guide](benchmarking/README.md) defines the complete input contract, command, score
-formula, outputs, and current limits.
-
-| Output | Contents |
-|---|---|
-| `comparison-report.json` | Evaluation-wide MAE, RMSE, cosine similarity, maximum error, and compared image/pixel counts. |
-| `evaluation-aggregate.json` | Image and pixel counts plus one `metrics` object with additive sums and derived evaluation-wide metrics. |
-| `score-result.json` | Numeric 0–1 score and its MAE, RMSE, maximum-error, and cosine components. |
-
-Run it locally with an already merged `image-results.jsonl` file:
+If you have an `image-results.jsonl` file, run the included benchmark:
 
 ```sh
-python -m pip install --upgrade anvil-dream-participant
 python -m anvil_dream_participant.benchmarking.evaluation \
   --image-results image-results.jsonl \
   --comparison-report comparison-report.json \
@@ -114,8 +63,6 @@ python -m anvil_dream_participant.benchmarking.evaluation \
   --output score-result.json
 ```
 
-Raw grading and shard gathering remain trusted organizer tasks. Current target TIFFs are private,
-so participants can run the benchmark only when they have the already merged JSONL input; WDL
-source visibility alone does not make raw grading runnable. A future self-run route needs a
-separately published participant-runnable raw-grading WDL and approved target inputs, followed by
-the benchmark task. The guide documents the input rows and exact standalone command.
+The [benchmark guide](docs/benchmark.md) describes the input format and score outputs.
+This command reads per-image metrics; it does not generate predictions or require
+access to the hidden evaluation dataset.

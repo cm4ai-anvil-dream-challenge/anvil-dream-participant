@@ -4,7 +4,8 @@ These pages were refreshed from the [Synapse staging site](https://www.synapse.o
 The mapping was rebuilt from all 18 pages in the live wiki hierarchy, including current titles and parents.
 This import did not change Synapse.
 
-Source prose and code examples are retained. Links and Synapse widgets are adapted for local Markdown.
+Links and Synapse widgets are adapted for local Markdown.
+Local edits to imported guides are recorded in `repository_updates` in the import manifest.
 The staging guides still contain some older technical details. The differences from the current package are recorded in [synapse-pages.json](synapse-pages.json).
 
 The manifest records page IDs, parents, timestamps, source and document checksums, and image attachment checksums.
@@ -32,5 +33,3 @@ Dynamic registration, participant lists, and leaderboard results remain on Synap
 | [Evaluation](benchmark.md) | How to participate | [Wiki 643842](https://www.synapse.org/Synapse:syn74338981/wiki/643842) |
 | [ProtiCelli Example](proticelli.md) | How to participate | [Wiki 643843](https://www.synapse.org/Synapse:syn74338981/wiki/643843) |
 | [Quickstart](quickstart.md) | How to participate | [Wiki 643829](https://www.synapse.org/Synapse:syn74338981/wiki/643829) |
-
-[Participant package release instructions](participant-releases.md) are maintained in this repository and were not imported from Synapse.
