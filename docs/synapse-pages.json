@@ -152,7 +152,7 @@
       "etag": "defe1f80-00a4-4131-a711-d8ecc1669fc8",
       "modified_on": "2026-10-14T21:29:31.400Z",
       "source_sha256": "d4077b9f24e1d5c0e8ae236ac15aaf4cced0142b366b340690682a8bb8ae4684",
-      "imported_sha256": "d0719d5f855913944a0c2373d503f90aa2c7f6219d0e1e39ff723ba787fc9832"
+      "imported_sha256": "6964c5c0df4dd661032e4ffe2431d971d6ae874c9c0fb8a5dae6264fdf42ca5e"
     },
     {
       "source": "docs/container-images.md",
@@ -192,7 +192,7 @@
       "etag": "ce4d5009-a1c9-4523-af4e-f9c52ff5e6e6",
       "modified_on": "2026-10-15T18:01:55.090Z",
       "source_sha256": "fa5021b67ecfb4d7b6da137022c44444d71e3b0dabb6e36657794d81b00d2d8c",
-      "imported_sha256": "e808d2c5fe3934c025e107305021b995c9b471a334091d163db1d80eff70c6f7"
+      "imported_sha256": "fb72004e17e2a52a1da29c9cbfe9625948233db53c2cd490c2dab708739d4322"
     }
   ],
   "attachments": [
@@ -242,5 +242,8 @@
       "current_implementation": "explicit ImageNormalizer and nucleus-reference scaling"
     }
   ],
-  "repository_updates": []
+  "repository_updates": [
+    "Removed developer setup and test instructions from docs/cli.md, streamlined participant guidance, and corrected public Python module names.",
+    "Removed the quickstart pointer to source-install instructions that were removed from the participant CLI guide."
+  ]
 }
