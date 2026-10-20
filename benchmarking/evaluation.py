@@ -8,42 +8,16 @@ Outputs: comparison report, evaluation aggregate, and numeric score-result JSON 
 from __future__ import annotations
 
 import argparse
-import math
 from pathlib import Path
 
 from .aggregate import (
     EvaluationAggregate,
     write_evaluation_aggregate,
 )
-from .contract import EvaluationResultContractError, _text
-from .image_results import PIXELS_PER_IMAGE, iter_image_results
-from .metrics import ComparisonMetrics
+from .image_results import iter_image_results
+from .reducer import ImageResultsReducer
 from .score import score_evaluation, write_score_result
 from .report import write_comparison_report
-
-
-class _AccurateSum:
-    """Maintain an fsum-style partial expansion using constant small memory."""
-
-    def __init__(self) -> None:
-        self._partials: list[float] = []
-
-    def add(self, value: float) -> None:
-        partials = self._partials
-        index = 0
-        for other in partials:
-            if abs(value) < abs(other):
-                value, other = other, value
-            high = value + other
-            low = other - (high - value)
-            if low:
-                partials[index] = low
-                index += 1
-            value = high
-        partials[index:] = [value]
-
-    def total(self) -> float:
-        return math.fsum(self._partials)
 
 
 def benchmark_image_results(
@@ -55,56 +29,17 @@ def benchmark_image_results(
     score_result_path: str | Path,
 ) -> EvaluationAggregate:
     """Stream per-image primitive statistics into evaluation-wide benchmark outputs."""
-    sums = {
-        name: _AccurateSum()
-        for name in (
-            "absolute_error_sum",
-            "squared_error_sum",
-            "dot_product_sum",
-            "prediction_square_sum",
-            "target_square_sum",
-        )
-    }
-    maximum_absolute_error = 0.0
-    record_count = 0
-    dataset_id = _text(dataset_id, "dataset_id")
-
+    reducer = ImageResultsReducer(dataset_id=dataset_id)
     for image in iter_image_results(image_results_path):
-        sums["absolute_error_sum"].add(image.metrics.absolute_error_sum)
-        sums["squared_error_sum"].add(image.metrics.squared_error_sum)
-        sums["dot_product_sum"].add(image.metrics.dot_product_sum)
-        sums["prediction_square_sum"].add(image.metrics.prediction_square_sum)
-        sums["target_square_sum"].add(image.metrics.target_square_sum)
-        maximum_absolute_error = max(
-            maximum_absolute_error, image.metrics.maximum_absolute_error
-        )
-        record_count += 1
+        reducer.add(image)
+    aggregate = reducer.build()
 
-    if record_count == 0:
-        raise EvaluationResultContractError("image results must contain at least one record")
-    element_count = record_count * PIXELS_PER_IMAGE
-
-    metrics = ComparisonMetrics.from_sums(
-        absolute_error_sum=sums["absolute_error_sum"].total(),
-        squared_error_sum=sums["squared_error_sum"].total(),
-        dot_product_sum=sums["dot_product_sum"].total(),
-        prediction_square_sum=sums["prediction_square_sum"].total(),
-        target_square_sum=sums["target_square_sum"].total(),
-        maximum_absolute_error=maximum_absolute_error,
-        element_count=element_count,
-    )
     write_comparison_report(
-        dataset_id=dataset_id,
-        metrics=metrics,
-        compared_images=record_count,
-        compared_pixels=element_count,
+        dataset_id=aggregate.dataset_id,
+        metrics=aggregate.metrics,
+        compared_images=aggregate.record_count,
+        compared_pixels=aggregate.element_count,
         output_path=comparison_report_path,
-    )
-    aggregate = EvaluationAggregate(
-        dataset_id=dataset_id,
-        record_count=record_count,
-        element_count=element_count,
-        metrics=metrics,
     )
     write_evaluation_aggregate(aggregate, aggregate_path)
     result = score_evaluation(aggregate)

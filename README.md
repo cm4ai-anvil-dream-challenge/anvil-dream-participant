@@ -86,7 +86,7 @@ workflow = parse_participant_workflow("participant.wdl")
 
 The participant CLI uses this miniwdl-based contract validation when you submit. Java is not
 required. For an optional independent check with Cromwell WOMtool, see the
-[participant quickstart](docs/quickstart.md#4-install-the-participant-cli).
+[participant quickstart](docs/quickstart.md).
 
 ## Run the benchmark
 
