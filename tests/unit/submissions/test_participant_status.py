@@ -10,7 +10,7 @@ class ParticipantStatusTests(unittest.TestCase):
         status = ParticipantSubmissionStatus.from_status(
             "123",
             {
-                "status": "OPEN",
+                "status": "SCORED",
                 "submissionAnnotations": {
                     "dream_state": "succeeded",
                     "comparison_status": "SUCCEEDED",
@@ -25,7 +25,7 @@ class ParticipantStatusTests(unittest.TestCase):
             status.as_dict(),
             {
                 "submission_id": "123",
-                "status": "OPEN",
+                "status": "SCORED",
                 "dream_state": "succeeded",
                 "comparison_status": "SUCCEEDED",
                 "comparison_shard_count": 10,

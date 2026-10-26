@@ -2,8 +2,8 @@
 
 `anvil-dream-participant` is a standalone Python distribution for submitting
 participant-authored WDL workflows. It installs the `anvil-dream-participant` command and the public
-`anvil_dream_participant` modules, including the runnable benchmark implementation. It does not
-include, import, or install the DREAM organizer package, and it does not read runtime assets
+`anvil_dream_participant` modules, including the HPA challenge profile and runnable benchmark.
+It does not include, import, or install the DREAM organizer package, and it does not read runtime assets
 from the parent repository.
 
 [Online participant documentation](https://www.synapse.org/Synapse:syn74338981/wiki/643841)
@@ -53,6 +53,7 @@ anvil-dream-participant --help
 anvil-dream-participant submit --help
 anvil-dream-participant submit-anvil --help
 anvil-dream-participant submission-status --help
+anvil-dream-participant benchmark --help
 ```
 
 The package includes the participant commands, WDL contract checks, private bundle format,
@@ -79,22 +80,26 @@ not a dependency.
 The public module can validate a participant WDL without importing organizer code:
 
 ```python
-from anvil_dream_participant.workflows.wdl import parse_participant_workflow
+from anvil_dream_participant.challenges.hpa.workflows import parse_participant_workflow
 
 workflow = parse_participant_workflow("participant.wdl")
 ```
 
-The participant CLI uses this miniwdl-based contract validation when you submit. Java is not
-required. For an optional independent check with Cromwell WOMtool, see the
+The participant CLI loads the selected profile and uses its workflow validator when you submit.
+The default profile is HPA. Set the root `--challenge MODULE:ATTRIBUTE` option to select another
+published `ChallengeProfile`. An explicit `--evaluation-id` takes precedence over that profile's
+evaluation. Java is not required. For an optional independent check with Cromwell WOMtool, see the
 [participant quickstart](docs/quickstart.md).
 
 ## Run the benchmark
 
 The standalone participant package includes the exact benchmark implementation used by the
-organizer. Its Python entrypoint is [`anvil_dream_participant.benchmarking.evaluation`](benchmarking/evaluation.py);
-the corresponding organizer task is `BenchmarkEvaluation` in
+organizer. The HPA implementation is
+[`anvil_dream_participant.challenges.hpa.benchmarking.evaluation`](challenges/hpa/benchmarking/evaluation.py).
+The command adapter is `anvil_dream_participant.cli.benchmark`; the corresponding organizer task
+is `BenchmarkEvaluation` in
 `organizer/workflows/templates/benchmark.wdl` in the source repository.
-The [benchmark guide](benchmarking/README.md) defines the complete input contract, command, score
+The [benchmark guide](docs/benchmark.md) defines the complete input contract, command, score
 formula, outputs, and current limits.
 
 | Output | Contents |
@@ -107,7 +112,7 @@ Run it locally with an already merged `image-results.jsonl` file:
 
 ```sh
 python -m pip install --upgrade anvil-dream-participant
-python -m anvil_dream_participant.benchmarking.evaluation \
+python -m anvil_dream_participant.cli.benchmark \
   --image-results image-results.jsonl \
   --comparison-report comparison-report.json \
   --aggregate evaluation-aggregate.json \

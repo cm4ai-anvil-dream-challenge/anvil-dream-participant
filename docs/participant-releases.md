@@ -38,7 +38,7 @@ make release-participant VERSION=0.2.0
 For a later release, choose a new version, for example:
 
 ```sh
-make release-participant VERSION=0.2.1
+make release-participant VERSION=0.3.0
 ```
 
 If the version changes, the command updates `pyproject.toml` and commits that

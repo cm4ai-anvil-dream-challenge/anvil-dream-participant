@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import importlib.util
-from importlib.metadata import distribution
+from importlib.metadata import distribution, distributions
 import os
 import subprocess
 import sys
@@ -12,38 +12,72 @@ import tarfile
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+from verify_public_artifacts import (
+    FORBIDDEN_DISTRIBUTIONS,
+    FORBIDDEN_IMPORT_ROOTS,
+    _assert_no_forbidden_organizer_helper_files,
+    is_forbidden_import,
+    normalize_distribution_name,
+)
+
 from anvil_dream_participant.submissions.bundle import (
     ARCHIVE_MANIFEST,
     ARCHIVE_WDL,
     ARCHIVE_WEIGHTS,
     SubmissionBundle,
 )
-from anvil_dream_participant.workflows.wdl import parse_participant_workflow
-from anvil_dream_participant.benchmarking.aggregate import EvaluationAggregate
-from anvil_dream_participant.benchmarking.image_results import (
+from anvil_dream_participant.challenges.hpa.workflows import parse_participant_workflow
+from anvil_dream_participant.challenges.hpa.benchmarking.aggregate import EvaluationAggregate
+from anvil_dream_participant.challenges.hpa.benchmarking.image_results import (
     ImageResult,
     PIXELS_PER_IMAGE,
 )
-from anvil_dream_participant.benchmarking.metrics import ComparisonMetrics
-from anvil_dream_participant.benchmarking.score import ScoreResult
-from anvil_dream_participant.benchmarking import evaluation as benchmark
-from anvil_dream_participant.benchmarking import image_results as image_result_contract
+from anvil_dream_participant.challenges.hpa.benchmarking.metrics import ComparisonMetrics
+from anvil_dream_participant.challenges.hpa.benchmarking.score import ScoreResult
+from anvil_dream_participant.challenges.hpa.benchmarking import evaluation as benchmark
+from anvil_dream_participant.challenges.hpa.benchmarking import image_results as image_result_contract
 
 
 def main(wdl_path: Path) -> None:
-    if importlib.util.find_spec("organizer") is not None:
-        raise AssertionError("the installed participant environment includes organizer code")
+    modules_found = [
+        name for name in FORBIDDEN_IMPORT_ROOTS if importlib.util.find_spec(name) is not None
+    ]
+    if modules_found:
+        raise AssertionError(
+            "the installed participant environment includes organizer modules: "
+            f"{modules_found}"
+        )
+    participant_distribution = distribution("anvil-dream-participant")
+    _assert_no_forbidden_organizer_helper_files(
+        [str(path) for path in participant_distribution.files or ()],
+        "installed participant wheel",
+    )
+    installed_distributions = {
+        normalize_distribution_name(dist.metadata["Name"])
+        for dist in distributions()
+        if dist.metadata.get("Name")
+    }
+    distributions_found = sorted(FORBIDDEN_DISTRIBUTIONS & installed_distributions)
+    if distributions_found:
+        raise AssertionError(
+            "the installed participant environment includes organizer distributions: "
+            f"{distributions_found}"
+        )
     entry_points = {
         entry_point.name: entry_point.value
-        for entry_point in distribution("anvil-dream-participant").entry_points
+        for entry_point in participant_distribution.entry_points
         if entry_point.group == "console_scripts"
     }
     if entry_points != {"anvil-dream-participant": "anvil_dream_participant.cli:main"}:
         raise AssertionError(f"participant wheel exposes unexpected commands: {entry_points}")
-    if importlib.util.find_spec("anvil_dream_participant.benchmarking.tasks") is not None:
+    if (
+        importlib.util.find_spec("anvil_dream_participant.challenges.hpa.benchmarking.tasks")
+        is not None
+    ):
         raise AssertionError("participant wheel includes organizer grading task commands")
-    if any(name == "organizer" or name.startswith("organizer.") for name in sys.modules):
-        raise AssertionError("participant wheel smoke imported organizer code")
+    loaded = sorted(name for name in sys.modules if is_forbidden_import(name))
+    if loaded:
+        raise AssertionError(f"participant wheel smoke imported organizer-side modules: {loaded}")
     if not callable(benchmark.benchmark_image_results):
         raise AssertionError("participant wheel does not expose the benchmark implementation")
     if hasattr(image_result_contract, "write_image_results"):
@@ -54,6 +88,49 @@ def main(wdl_path: Path) -> None:
 
     with TemporaryDirectory() as directory:
         root = Path(directory)
+        environment = os.environ.copy()
+        environment["HOME"] = str(root)
+        environment.pop("PYTHONPATH", None)
+        for name in (
+            "GOOGLE_APPLICATION_CREDENTIALS",
+            "GOOGLE_CLOUD_PROJECT",
+            "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE",
+            "CLOUDSDK_CONFIG",
+            "AWS_PROFILE",
+            "AWS_SHARED_CREDENTIALS_FILE",
+            "AWS_CONFIG_FILE",
+            "SYNAPSE_AUTH_TOKEN",
+            "SYNAPSE_CONFIG",
+            "SYNAPSE_CACHE_DIR",
+        ):
+            environment.pop(name, None)
+
+        participant_command = Path(sys.executable).with_name("anvil-dream-participant")
+        if not participant_command.is_file():
+            raise AssertionError(f"participant console command is missing: {participant_command}")
+        for arguments, expected in (
+            (["--help"], "Usage: anvil-dream-participant"),
+            (["submit", "--help"], "Usage: anvil-dream-participant submit"),
+            (["submit-anvil", "--help"], "Usage: anvil-dream-participant submit-anvil"),
+            (
+                ["submission-status", "--help"],
+                "Usage: anvil-dream-participant submission-status",
+            ),
+        ):
+            result = subprocess.run(
+                [str(participant_command), *arguments],
+                capture_output=True,
+                check=False,
+                cwd=root,
+                env=environment,
+                text=True,
+                timeout=30,
+            )
+            if result.returncode != 0 or expected not in result.stdout:
+                raise AssertionError(
+                    f"participant command {arguments} failed: {result.returncode}\n{result.stderr}"
+                )
+
         weights = root / "weights.bin"
         weights.write_bytes(b"offline test weights")
         other_files = root / "other-files"
@@ -101,13 +178,11 @@ def main(wdl_path: Path) -> None:
             json.dumps(image_result.as_dict(), sort_keys=True, separators=(",", ":")) + "\n",
             encoding="utf-8",
         )
-        environment = os.environ.copy()
-        environment.pop("PYTHONPATH", None)
         subprocess.run(
             [
                 sys.executable,
                 "-m",
-                "anvil_dream_participant.benchmarking.evaluation",
+                "anvil_dream_participant.cli.benchmark",
                 "--image-results",
                 str(image_results),
                 "--comparison-report",

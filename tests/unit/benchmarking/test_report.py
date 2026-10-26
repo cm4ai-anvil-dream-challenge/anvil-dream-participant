@@ -5,10 +5,12 @@ import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from anvil_dream_participant.benchmarking.contract import EvaluationResultContractError
-from anvil_dream_participant.benchmarking.image_results import PIXELS_PER_IMAGE
-from anvil_dream_participant.benchmarking.metrics import ComparisonMetrics
-from anvil_dream_participant.benchmarking.report import (
+from anvil_dream_participant.challenges.hpa.benchmarking.contract import (
+    EvaluationResultContractError,
+)
+from anvil_dream_participant.challenges.hpa.benchmarking.image_results import PIXELS_PER_IMAGE
+from anvil_dream_participant.challenges.hpa.benchmarking.metrics import ComparisonMetrics
+from anvil_dream_participant.challenges.hpa.benchmarking.report import (
     COMPARISON_REPORT_SCHEMA,
     ComparisonReport,
     write_comparison_report,

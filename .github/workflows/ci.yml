@@ -81,11 +81,24 @@ jobs:
           "$WHEEL_BIN/anvil-dream-participant" submit-anvil --help
           "$WHEEL_BIN/anvil-dream-participant" submission-status --help
           "$WHEEL_PY" "$GITHUB_WORKSPACE/tests/integration/packaging/smoke_participant_wheel.py" \
-            "$GITHUB_WORKSPACE/examples/proticelli/participant.wdl"
-          if "$WHEEL_BIN/anvil-dream-participant" organizer --help \
+            "$GITHUB_WORKSPACE/challenges/hpa/examples/proticelli/participant.wdl"
+          if "$WHEEL_BIN/anvil-dream-participant" organizer \
             > "$RUNNER_TEMP/organizer-rejection.txt" 2>&1; then
             echo "participant CLI accepted organizer commands" >&2
             exit 1
           fi
           grep -F "not included in the participant package" \
             "$RUNNER_TEMP/organizer-rejection.txt"
+
+      - name: Smoke the installed source distribution
+        run: |
+          python -m venv "$RUNNER_TEMP/participant-sdist-venv"
+          SDIST_PY="$RUNNER_TEMP/participant-sdist-venv/bin/python"
+          SDIST_BIN="$RUNNER_TEMP/participant-sdist-venv/bin"
+          "$SDIST_PY" -m pip install "$RUNNER_TEMP/participant-dist/"*.tar.gz
+          "$SDIST_PY" -m pip check
+          cd "$RUNNER_TEMP"
+          "$SDIST_BIN/anvil-dream-participant" --help
+          "$SDIST_BIN/anvil-dream-participant" submit --help
+          "$SDIST_PY" -B "$GITHUB_WORKSPACE/tests/integration/packaging/smoke_participant_wheel.py" \
+            "$GITHUB_WORKSPACE/challenges/hpa/examples/proticelli/participant.wdl"

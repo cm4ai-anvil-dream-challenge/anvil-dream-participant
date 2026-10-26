@@ -8,7 +8,7 @@ from pathlib import Path
 from types import ModuleType
 
 ROOT = Path(__file__).resolve().parents[3]
-ADAPTER_DIR = ROOT / "examples/proticelli"
+ADAPTER_DIR = ROOT / "challenges/hpa/examples/proticelli"
 
 
 def load_participant_module(filename: str, module_name: str) -> ModuleType:

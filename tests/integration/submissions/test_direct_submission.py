@@ -1,28 +1,20 @@
-import argparse
-import io
-import json
+from __future__ import annotations
+
 import tempfile
 import unittest
-from contextlib import redirect_stdout
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
-
-from anvil_dream_participant.cli.participant import _submit_bundle, build_parser
-from anvil_dream_participant.config import (
-    ParticipantConfig,
-    ParticipantSynapseConfig,
-    ParticipantTerraConfig,
-)
-from anvil_dream_participant.integrations.terra import AnvilIdentity
+from anvil_dream_participant.challenge import ChallengeProfile
+from anvil_dream_participant.config import participant_config_for_evaluation
 from anvil_dream_participant.integrations.synapse_readiness import (
     ChallengeAccessState,
     ChallengeReadiness,
-    ChallengeRoute,
-    TeamMembershipSnapshot,
 )
-from anvil_dream_participant.integrations.synapse_upload import ParticipantSubmissionResult
+from anvil_dream_participant.integrations.terra import AnvilIdentity
+from anvil_dream_participant.submissions.operations import SubmissionRequest, submit_bundle
+from anvil_dream_participant.workflows.wdl import WorkflowContractError
 
 
 WDL = """version 1.0
@@ -40,80 +32,63 @@ task Predict {
   }
   command { echo ~{weights} }
   output { Array[File] predictions = [] }
-  runtime { docker: \"ghcr.io/example/predict@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\" }
+  runtime { docker: "ghcr.io/example/predict@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" }
 }
 """
 
 IMAGE = "ghcr.io/example/participant-model@sha256:" + "b" * 64
 
 
-def participant_wdl(image: str = IMAGE) -> str:
-    return WDL.replace(
-        "echo ~{weights}",
-        'python3 /model/predict.py --inputs-manifest "~{write_json(inputs)}" '
-        '--weights "~{weights}" --output predictions',
-    ).replace(
-        "ghcr.io/example/predict@sha256:" + "a" * 64,
-        image,
+def _profile(validate_workflow=lambda _path: None) -> ChallengeProfile:
+    return ChallengeProfile(
+        name="Fixture",
+        evaluation_id="1",
+        queue_name="Fixture queue",
+        validate_workflow=validate_workflow,
+    )
+
+
+def _readiness() -> ChallengeReadiness:
+    route = {
+        "evaluation_id": "1",
+        "content_source_id": "syn123",
+        "challenge_id": "challenge",
+        "participant_team_id": "7",
+        "participant_team_name": "team",
+        "participant_team_accepts_requests": True,
+    }
+    return ChallengeReadiness(
+        route,
+        "123",
+        True,
+        {
+            "is_member": True,
+            "is_registered": True,
+            "has_open_invitation": False,
+            "has_open_request": False,
+            "has_unmet_access_requirement": False,
+            "team_accepts_requests": True,
+        },
+        ChallengeAccessState["READY"],
+        "ready",
     )
 
 
 class DirectSubmissionTests(unittest.TestCase):
-    def test_participant_config_contains_no_workspace_grant_fields(self) -> None:
-        config_fields = set(ParticipantTerraConfig.__dataclass_fields__)
-        self.assertEqual(config_fields, {"sam_url"})
-        self.assertNotIn("membership_request_id", ParticipantSynapseConfig.__dataclass_fields__)
-        self.assertNotIn("organizer_synapse_user_id", ParticipantSynapseConfig.__dataclass_fields__)
-
-    def test_parser_removes_registration_and_workspace_arguments(self) -> None:
-        parser = build_parser("anvil-dream-participant")
-        with self.assertRaises(SystemExit):
-            parser.parse_args(["register"])
-        args = parser.parse_args(
-            [
-                "submit",
-                "--wdl",
-                "workflow.wdl",
-                "--weights",
-                "weights.pt",
-                "--anvil-email",
-                "user@example.org",
-            ]
-        )
-        self.assertEqual(args.other_files, None)
-        self.assertFalse(hasattr(args, "dockerfile"))
-        self.assertFalse(hasattr(args, "workspace"))
+    def test_participant_config_contains_only_participant_fields(self) -> None:
+        config = participant_config_for_evaluation("1", queue_name="queue")
+        self.assertEqual(set(config), {"synapse", "terra"})
+        self.assertEqual(set(config["terra"]), {"sam_url"})
+        self.assertNotIn("membership_request_id", config["synapse"])
+        self.assertNotIn("organizer_synapse_user_id", config["synapse"])
 
     def test_public_image_is_validated_before_synapse_upload(self) -> None:
-        route = ChallengeRoute("1", "syn123", "challenge", "7", "team", True)
-        readiness = ChallengeReadiness(
-            route,
-            "123",
-            "participant",
-            True,
-            True,
-                    TeamMembershipSnapshot(True, True, False, False, False, True),
-            ChallengeAccessState.READY,
-            "ready",
-        )
-        config = ParticipantConfig(
-            synapse=ParticipantSynapseConfig("queue", evaluation_id="1"),
-            terra=ParticipantTerraConfig("https://sam.example.org"),
-        )
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             wdl = root / "workflow.wdl"
             weights = root / "weights.pt"
-            wdl.write_text(participant_wdl(), encoding="utf-8")
+            wdl.write_text(WDL, encoding="utf-8")
             weights.write_bytes(b"weights")
-            args = argparse.Namespace(
-                wdl=wdl,
-                weights=weights,
-                other_files=None,
-                anvil_email="user@example.org",
-                name=None,
-                team=None,
-            )
             events: list[str] = []
             validated_images: list[str] = []
             terra = Mock()
@@ -121,69 +96,68 @@ class DirectSubmissionTests(unittest.TestCase):
                 "user@example.org", "subject"
             )
             gateway = Mock()
-            gateway.setup_private_submission_project.return_value = (
-                {"id": "syn456"},
-                Mock(),
-            )
-            gateway.preflight_submission.return_value = readiness
-            gateway.upload_and_submit.side_effect = lambda *args: (
+            gateway.setup_private_submission_project.return_value = ({"id": "syn456"}, Mock())
+            gateway.preflight_submission.return_value = _readiness()
+            gateway.upload_and_submit.side_effect = lambda *_args: (
                 events.append("upload"),
-                ParticipantSubmissionResult(
-                    submission=SimpleNamespace(id="55", entityId="syn789"),
-                    reused=True,
-                ),
+                {
+                    "submission": SimpleNamespace(id="55", entityId="syn789"),
+                    "reused": True,
+                },
             )[1]
-            output = io.StringIO()
-            progress_mock = Mock()
+            bundle = SimpleNamespace(
+                manifest=SimpleNamespace(
+                    container_images=(IMAGE,),
+                    canonical_json=Mock(return_value=b"{}"),
+                    core_fingerprint="c" * 64,
+                    full_fingerprint="f" * 64,
+                ),
+                write_archive=Mock(side_effect=lambda path: Path(path).write_bytes(b"bundle")),
+            )
 
             def verify_image(image: str) -> None:
                 events.append("image")
                 validated_images.append(image)
 
+            request = SubmissionRequest(
+                profile=_profile(),
+                wdl=wdl,
+                weights=weights,
+                anvil_email="user@example.org",
+            )
             with (
                 patch(
-                    "anvil_dream_participant.cli.participant.ParticipantTerraClient", return_value=terra
+                    "anvil_dream_participant.submissions.operations.ParticipantTerraClient",
+                    return_value=terra,
                 ),
                 patch(
-                    "anvil_dream_participant.cli.participant.ParticipantSynapseGateway",
+                    "anvil_dream_participant.submissions.operations.ParticipantSynapseGateway",
                     return_value=gateway,
                 ),
                 patch(
-                    "anvil_dream_participant.cli.participant.verify_public_container_image",
+                    "anvil_dream_participant.submissions.operations.SubmissionBundle.create",
+                    return_value=bundle,
+                ),
+                patch(
+                    "anvil_dream_participant.submissions.operations.verify_public_container_image",
                     side_effect=verify_image,
                 ),
-                patch("anvil_dream_participant.cli.participant.progress", progress_mock),
-                redirect_stdout(output),
+                patch("anvil_dream_participant.submissions.operations.progress"),
             ):
-                self.assertEqual(_submit_bundle(config, args), 0)
-            self.assertEqual(events, ["image", "upload"])
-            self.assertEqual(validated_images, [IMAGE])
-            submission_output = json.loads(output.getvalue())
-            self.assertEqual(submission_output["submission_id"], "55")
-            self.assertTrue(submission_output["tar_reused"])
-            self.assertIn(
-                "Reused the existing private submission TAR",
-                [call.args[0] for call in progress_mock.call_args_list],
-            )
-            gateway.setup_private_submission_project.assert_called_once_with()
-            gateway.preflight_submission.assert_called_once_with("syn456", None)
+                receipt = submit_bundle(request)
 
-    def test_explicit_team_flows_through_preflight_and_queue_submission(self) -> None:
+        self.assertEqual(events, ["image", "upload"])
+        self.assertEqual(validated_images, [IMAGE])
+        self.assertEqual(receipt["submission_id"], "55")
+        self.assertEqual(receipt["entity_id"], "syn789")
+        self.assertEqual(receipt["core_fingerprint"], "c" * 64)
+        self.assertEqual(receipt["full_fingerprint"], "f" * 64)
+        self.assertTrue(receipt["tar_reused"])
+        gateway.setup_private_submission_project.assert_called_once_with()
+        gateway.preflight_submission.assert_called_once_with("syn456", None)
+
+    def test_verified_vm_identity_skips_local_google_userinfo_and_keeps_team(self) -> None:
         identity = AnvilIdentity("user@example.org", "subject")
-        config = ParticipantConfig(
-            synapse=ParticipantSynapseConfig(
-                "queue", submission_parent_id="synParent", evaluation_id="1"
-            ),
-            terra=ParticipantTerraConfig("https://sam.example.org"),
-        )
-        args = argparse.Namespace(
-            wdl=Path("workflow.wdl"),
-            weights=Path("weights.pt"),
-            other_files=None,
-            anvil_email=identity.email,
-            name=None,
-            team="submission-team-1",
-        )
         bundle = SimpleNamespace(
             manifest=SimpleNamespace(
                 container_images=(),
@@ -194,26 +168,37 @@ class DirectSubmissionTests(unittest.TestCase):
             write_archive=Mock(side_effect=lambda path: Path(path).write_bytes(b"bundle")),
         )
         gateway = Mock()
+        gateway.setup_private_submission_project.return_value = ({"id": "synParent"}, Mock())
         gateway.preflight_submission.return_value = SimpleNamespace(submitter_id="123")
-        gateway.upload_and_submit.return_value = ParticipantSubmissionResult(
-            submission=SimpleNamespace(id="55", entityId="syn789"),
-            reused=False,
+        gateway.upload_and_submit.return_value = {
+            "submission": SimpleNamespace(id="55", entityId="syn789"),
+            "reused": False,
+        }
+        request = SubmissionRequest(
+            profile=_profile(),
+            wdl=Path("workflow.wdl"),
+            weights=Path("weights.pt"),
+            anvil_email=identity.email,
+            team="submission-team-1",
         )
 
         with (
             patch(
-                "anvil_dream_participant.cli.participant.ParticipantSynapseGateway", return_value=gateway
+                "anvil_dream_participant.submissions.operations.ParticipantTerraClient"
+            ) as terra,
+            patch(
+                "anvil_dream_participant.submissions.operations.ParticipantSynapseGateway",
+                return_value=gateway,
             ),
             patch(
-                "anvil_dream_participant.cli.participant.SubmissionBundle.create", return_value=bundle
+                "anvil_dream_participant.submissions.operations.SubmissionBundle.create",
+                return_value=bundle,
             ) as create,
-            patch("anvil_dream_participant.cli.participant.parse_participant_workflow"),
-            patch("anvil_dream_participant.cli.participant.verify_public_container_image"),
-            patch("anvil_dream_participant.cli.participant.progress"),
-            redirect_stdout(io.StringIO()),
+            patch("anvil_dream_participant.submissions.operations.progress"),
         ):
-            self.assertEqual(_submit_bundle(config, args, identity=identity), 0)
+            submit_bundle(request, identity=identity)
 
+        terra.assert_not_called()
         gateway.preflight_submission.assert_called_once_with("synParent", "submission-team-1")
         gateway.upload_and_submit.assert_called_once()
         self.assertEqual(
@@ -221,86 +206,85 @@ class DirectSubmissionTests(unittest.TestCase):
             ("synParent", "participant-prediction", "submission-team-1"),
         )
         self.assertEqual(create.call_args.kwargs["submission_team"], "submission-team-1")
+        self.assertEqual(create.call_args.kwargs["anvil_subject_id"], identity.subject_id)
 
-    def test_verified_vm_identity_skips_local_google_userinfo(self) -> None:
-        route = ChallengeRoute("1", "syn123", "challenge", "7", "team", True)
-        readiness = ChallengeReadiness(
-            route,
-            "123",
-            "participant",
-            True,
-            True,
-                    TeamMembershipSnapshot(True, True, False, False, False, True),
-            ChallengeAccessState.READY,
-            "ready",
-        )
-        config = ParticipantConfig(
-            synapse=ParticipantSynapseConfig("queue", evaluation_id="1"),
-            terra=ParticipantTerraConfig("https://sam.example.org"),
-        )
+    def test_evaluation_override_selects_the_generic_synapse_queue(self) -> None:
         identity = AnvilIdentity("person@example.org", "sam-subject")
+        gateway = Mock()
+        gateway.setup_private_submission_project.return_value = ({"id": "synParent"}, Mock())
+        gateway.preflight_submission.return_value = SimpleNamespace(submitter_id="123")
+        gateway.upload_and_submit.return_value = {
+            "submission": SimpleNamespace(id="55", entityId="syn789"),
+            "reused": False,
+        }
         bundle = SimpleNamespace(
             manifest=SimpleNamespace(
                 container_images=(),
+                canonical_json=Mock(return_value=b"{}"),
                 core_fingerprint="c" * 64,
                 full_fingerprint="f" * 64,
-                canonical_json=Mock(return_value=b"{}"),
             ),
             write_archive=Mock(side_effect=lambda path: Path(path).write_bytes(b"bundle")),
         )
-        gateway = Mock()
-        gateway.setup_private_submission_project.return_value = ({"id": "syn456"}, Mock())
-        gateway.preflight_submission.return_value = readiness
-        gateway.upload_and_submit.return_value = ParticipantSubmissionResult(
-            submission=SimpleNamespace(id="55", entityId="syn789"),
-            reused=False,
-        )
-        args = argparse.Namespace(
+        request = SubmissionRequest(
+            profile=_profile(),
             wdl=Path("workflow.wdl"),
             weights=Path("weights.pt"),
-            other_files=None,
             anvil_email=identity.email,
-            name=None,
-            team=None,
+            evaluation_id_override="2",
         )
+
         with (
-            patch("anvil_dream_participant.cli.participant.ParticipantTerraClient") as terra,
             patch(
-                "anvil_dream_participant.cli.participant.ParticipantSynapseGateway", return_value=gateway
+                "anvil_dream_participant.submissions.operations.ParticipantSynapseGateway",
+                return_value=gateway,
+            ) as gateway_type,
+            patch(
+                "anvil_dream_participant.submissions.operations.SubmissionBundle.create",
+                return_value=bundle,
             ),
-            patch(
-                "anvil_dream_participant.cli.participant.SubmissionBundle.create", return_value=bundle
-            ) as create,
-            patch("anvil_dream_participant.cli.participant.parse_participant_workflow"),
-            patch("anvil_dream_participant.cli.participant.progress"),
-            redirect_stdout(io.StringIO()),
+            patch("anvil_dream_participant.submissions.operations.progress"),
         ):
-            self.assertEqual(_submit_bundle(config, args, identity=identity), 0)
+            submit_bundle(request, identity=identity)
 
-        terra.assert_not_called()
-        self.assertEqual(create.call_args.kwargs["anvil_email"], identity.email)
-        self.assertEqual(create.call_args.kwargs["anvil_subject_id"], identity.subject_id)
-        gateway.upload_and_submit.assert_called_once()
+        config = gateway_type.call_args.args[0]
+        self.assertEqual(config["evaluation_id"], "2")
+        self.assertEqual(config["queue_name"], "Synapse Evaluation 2")
 
+    def test_profile_validation_fails_before_cloud_access(self) -> None:
+        from anvil_dream_participant.challenges.hpa.profile import PROFILE
 
-    def test_hardware_runtime_is_rejected_before_cloud_access(self) -> None:
-        config = ParticipantConfig(
-            synapse=ParticipantSynapseConfig("queue", evaluation_id="1"),
-            terra=ParticipantTerraConfig("https://sam.example.org"),
+        example = Path(__file__).resolve().parents[3] / (
+            "challenges/hpa/examples/proticelli/participant.wdl"
+        )
+        source = example.read_text(encoding="utf-8").replace(
+            "  runtime {",
+            "  runtime {\n    cpu: 8",
+            1,
         )
         with tempfile.TemporaryDirectory() as directory:
             wdl = Path(directory) / "workflow.wdl"
-            wdl.write_text(
-                WDL.replace("runtime { docker:", "runtime { cpu: 8\n    docker:"),
-                encoding="utf-8",
+            wdl.write_text(source, encoding="utf-8")
+            request = SubmissionRequest(
+                profile=PROFILE,
+                wdl=wdl,
+                weights=Path("weights.pt"),
+                anvil_email="person@example.org",
             )
-            args = SimpleNamespace(wdl=wdl)
             with (
-                patch("anvil_dream_participant.cli.participant.ParticipantTerraClient") as terra,
-                patch("anvil_dream_participant.cli.participant.ParticipantSynapseGateway") as synapse,
+                patch(
+                    "anvil_dream_participant.submissions.operations.ParticipantTerraClient"
+                ) as terra,
+                patch(
+                    "anvil_dream_participant.submissions.operations.ParticipantSynapseGateway"
+                ) as synapse,
+                self.assertRaisesRegex(WorkflowContractError, "unsupported cpu"),
             ):
-                with self.assertRaisesRegex(SystemExit, "unsupported cpu"):
-                    _submit_bundle(config, args)
+                submit_bundle(request)
 
-            terra.assert_not_called()
-            synapse.assert_not_called()
+        terra.assert_not_called()
+        synapse.assert_not_called()
+
+
+if __name__ == "__main__":
+    unittest.main()

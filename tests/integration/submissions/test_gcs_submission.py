@@ -4,17 +4,20 @@ import tempfile
 import tarfile
 import unittest
 from pathlib import Path
-from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
-from anvil_dream_participant.cli.participant import _submit_anvil_bundle, build_parser
-from anvil_dream_participant.config import participant_config_for_evaluation
+from anvil_dream_participant.challenge import ChallengeProfile
 from anvil_dream_participant.integrations.terra import AnvilIdentity
-from anvil_dream_participant.submissions.bundle import BundleLimits, SubmissionBundle
+from anvil_dream_participant.submissions.bundle import DEFAULT_BUNDLE_LIMITS, BundleLimits, SubmissionBundle
 from anvil_dream_participant.submissions.gcs_staging import (
     GcsStagingError,
-    GcsSubmissionSources,
+    parse_gcs_submission_sources,
     stage_gcs_submission_files,
+)
+from anvil_dream_participant.submissions.operations import (
+    AnvilSubmissionRequest,
+    SubmissionStagingError,
+    submit_anvil_bundle,
 )
 
 
@@ -36,6 +39,15 @@ task Predict {
   runtime { docker: "ghcr.io/example/predict@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" }
 }
 """.encode()
+
+
+def _profile() -> ChallengeProfile:
+    return ChallengeProfile(
+        name="Fixture",
+        evaluation_id="9620030",
+        queue_name="Fixture queue",
+        validate_workflow=lambda _path: None,
+    )
 
 
 class FakeBlob:
@@ -93,18 +105,27 @@ class GcsSubmissionTests(unittest.TestCase):
         tokens = FakeBlob("vocab/tokens.json", b'["a"]', generation=31)
         client.objects["source-bucket", config.name] = config
         client.objects["another-bucket", tokens.name] = tokens
-        args = build_parser().parse_args([
-            "submit-anvil", "--wdl", "gs://source-bucket/model/workflow.wdl",
-            "--weights", "gs://source-bucket/model/weights.pt", "--files",
-            "gs://source-bucket/context/nested/config.yaml", "gs://another-bucket/vocab/tokens.json",
-        ])
+        request = AnvilSubmissionRequest(
+            profile=_profile(),
+            wdl="gs://source-bucket/model/workflow.wdl",
+            weights="gs://source-bucket/model/weights.pt",
+            files=(
+                "gs://source-bucket/context/nested/config.yaml",
+                "gs://another-bucket/vocab/tokens.json",
+            ),
+            recursive=False,
+        )
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            staged = self._stage(client, GcsSubmissionSources.parse(
-                args.wdl, args.weights, args.files, recursive=args.recursive,
-            ), root / "staged")
+            staged = self._stage(
+                client,
+                parse_gcs_submission_sources(
+                    request.wdl, request.weights, list(request.files or ()), recursive=False
+                ),
+                root / "staged",
+            )
             bundle = SubmissionBundle.create(
-                wdl=staged.wdl, weights=staged.weights, other_files=staged.other_files,
+                wdl=staged["wdl"], weights=staged["weights"], other_files=staged["other_files"],
                 synapse_user_id="123", anvil_email="person@example.org",
                 anvil_subject_id="sam-subject",
             )
@@ -118,7 +139,7 @@ class GcsSubmissionTests(unittest.TestCase):
         client = self._client()
         for name in ("first/config.yaml", "second/config.yaml"):
             client.objects["source-bucket", name] = FakeBlob(name, b"config")
-        sources = GcsSubmissionSources.parse(
+        sources = parse_gcs_submission_sources(
             "gs://source-bucket/model/workflow.wdl", "gs://source-bucket/model/weights.pt",
             ["gs://source-bucket/first/config.yaml", "gs://source-bucket/second/config.yaml"],
         )
@@ -136,14 +157,14 @@ class GcsSubmissionTests(unittest.TestCase):
         client.list_blobs = lambda bucket, prefix: [
             blob for blob in files if blob.name.startswith(prefix)
         ]
-        sources = GcsSubmissionSources.parse(
+        sources = parse_gcs_submission_sources(
             "gs://source-bucket/model/workflow.wdl", "gs://source-bucket/model/weights.pt",
             ["gs://source-bucket/first", "gs://source-bucket/second/"], recursive=True,
         )
         with tempfile.TemporaryDirectory() as directory:
             staged = self._stage(client, sources, Path(directory))
-            self.assertEqual((staged.other_files / "nested/config.yaml").read_bytes(), b"config")
-            self.assertEqual((staged.other_files / "vocab/tokens.json").read_bytes(), b"tokens")
+            self.assertEqual((staged["other_files"] / "nested/config.yaml").read_bytes(), b"config")
+            self.assertEqual((staged["other_files"] / "vocab/tokens.json").read_bytes(), b"tokens")
         conflict = FakeBlob("second/nested/config.yaml", b"other")
         files.append(conflict)
         client.objects["source-bucket", conflict.name] = conflict
@@ -156,13 +177,13 @@ class GcsSubmissionTests(unittest.TestCase):
 
     def test_recursive_requires_files_and_reserved_filenames_fail_before_download(self) -> None:
         with self.assertRaisesRegex(GcsStagingError, "--recursive requires --files"):
-            GcsSubmissionSources.parse(
+            parse_gcs_submission_sources(
                 "gs://source-bucket/model/workflow.wdl", "gs://source-bucket/model/weights.pt",
                 recursive=True,
             )
         client = self._client()
         client.objects["source-bucket", "context/predictions"] = FakeBlob("context/predictions", b"bad")
-        sources = GcsSubmissionSources.parse(
+        sources = parse_gcs_submission_sources(
             "gs://source-bucket/model/workflow.wdl", "gs://source-bucket/model/weights.pt",
             ["gs://source-bucket/context/predictions"],
         )
@@ -171,8 +192,8 @@ class GcsSubmissionTests(unittest.TestCase):
                 self._stage(client, sources, Path(directory))
         self.assertTrue(all(not blob.downloads for blob in client.objects.values()))
 
-    def _sources(self, other: str | None = None) -> GcsSubmissionSources:
-        return GcsSubmissionSources.parse(
+    def _sources(self, other: str | None = None) -> dict[str, object]:
+        return parse_gcs_submission_sources(
             "gs://source-bucket/model/workflow.wdl",
             "gs://source-bucket/model/weights.pt",
             [other] if other else None,
@@ -191,10 +212,10 @@ class GcsSubmissionTests(unittest.TestCase):
     def _stage(
         self,
         client: FakeStorageClient,
-        sources: GcsSubmissionSources,
+        sources: dict[str, object],
         destination: Path,
         *,
-        limits: BundleLimits = BundleLimits(),
+        limits: BundleLimits = DEFAULT_BUNDLE_LIMITS,
     ):
         with patch(
             "anvil_dream_participant.submissions.gcs_staging.storage.Client", return_value=client
@@ -221,14 +242,14 @@ class GcsSubmissionTests(unittest.TestCase):
         )
         for path in invalid_paths:
             with self.subTest(path=path), self.assertRaises(GcsStagingError):
-                GcsSubmissionSources.parse(
+                parse_gcs_submission_sources(
                     f"gs://source-bucket/{path}",
                     "gs://source-bucket/model/weights.pt",
                     None,
                 )
 
         with self.assertRaisesRegex(GcsStagingError, "not a prefix"):
-            GcsSubmissionSources.parse(
+            parse_gcs_submission_sources(
                 "gs://source-bucket/model/workflow.wdl",
                 "gs://source-bucket/model/weights.pt",
                 ["gs://source-bucket/context/"],
@@ -263,12 +284,12 @@ class GcsSubmissionTests(unittest.TestCase):
                     client,
                     self._sources(),
                     Path(directory),
-                    limits=BundleLimits(
-                        max_members=10,
-                        max_member_bytes=8,
-                        max_total_bytes=100,
-                        max_manifest_bytes=100,
-                    ),
+                    limits={
+                        "max_members": 10,
+                        "max_member_bytes": 8,
+                        "max_total_bytes": 100,
+                        "max_manifest_bytes": 100,
+                    },
                 )
         self.assertEqual(client.objects["source-bucket", "model/workflow.wdl"].downloads, [])
         self.assertEqual(client.objects["source-bucket", "model/weights.pt"].downloads, [])
@@ -283,7 +304,7 @@ class GcsSubmissionTests(unittest.TestCase):
                 Path(directory),
             )
             self.assertEqual(
-                (staged.other_files / "nested/config.yaml").read_bytes(),
+                (staged["other_files"] / "nested/config.yaml").read_bytes(),
                 b"seed: 3\n",
             )
         self.assertEqual(
@@ -326,9 +347,9 @@ class GcsSubmissionTests(unittest.TestCase):
                 anvil_subject_id="sam-subject",
             )
             gcs_bundle = SubmissionBundle.create(
-                wdl=staged.wdl,
-                weights=staged.weights,
-                other_files=staged.other_files,
+                wdl=staged["wdl"],
+                weights=staged["weights"],
+                other_files=staged["other_files"],
                 synapse_user_id="123",
                 anvil_email="person@example.org",
                 anvil_subject_id="sam-subject",
@@ -350,38 +371,44 @@ class GcsSubmissionTests(unittest.TestCase):
             events.append("identity"),
             AnvilIdentity("person@example.org", "sam-subject"),
         )[1]
-        staged = SimpleNamespace(
-            wdl=Path("/tmp/workflow.wdl"),
-            weights=Path("/tmp/weights"),
-            other_files=Path("/tmp/other"),
+        staged = {
+            "wdl": Path("/tmp/workflow.wdl"),
+            "weights": Path("/tmp/weights"),
+            "other_files": Path("/tmp/other"),
+        }
+        request = AnvilSubmissionRequest(
+            profile=_profile(),
+            wdl="gs://source-bucket/model/workflow.wdl",
+            weights="gs://source-bucket/model/weights.pt",
+            files=("gs://source-bucket/context/",),
+            recursive=True,
         )
-        args = build_parser().parse_args(
-            [
-                "submit-anvil",
-                "--wdl",
-                "gs://source-bucket/model/workflow.wdl",
-                "--weights",
-                "gs://source-bucket/model/weights.pt",
-                "--files",
-                "gs://source-bucket/context/",
-                "--recursive",
-            ]
+        bundle_flow = Mock(
+            side_effect=lambda *_args, **_kwargs: (events.append("bundle"), {"status": "ok"})[1]
         )
-        config = participant_config_for_evaluation(args.evaluation_id)
-        bundle_flow = Mock(side_effect=lambda *args, **kwargs: (events.append("bundle"), 0)[1])
         stage = Mock(side_effect=lambda *args, **kwargs: (events.append("stage"), staged)[1])
         with (
-            patch("anvil_dream_participant.cli.participant.ParticipantTerraClient", return_value=terra),
-            patch("anvil_dream_participant.cli.participant.stage_gcs_submission_files", stage),
-            patch("anvil_dream_participant.cli.participant._submit_bundle", bundle_flow),
-            patch("anvil_dream_participant.cli.participant.progress"),
+            patch(
+                "anvil_dream_participant.submissions.operations.ParticipantTerraClient",
+                return_value=terra,
+            ),
+            patch(
+                "anvil_dream_participant.submissions.operations.stage_gcs_submission_files", stage
+            ),
+            patch(
+                "anvil_dream_participant.submissions.operations.submit_bundle", bundle_flow
+            ),
+            patch("anvil_dream_participant.submissions.operations.progress"),
         ):
-            self.assertEqual(_submit_anvil_bundle(config, args), 0)
+            receipt = submit_anvil_bundle(request)
 
         self.assertEqual(events, ["identity", "stage", "bundle"])
+        self.assertEqual(receipt, {"status": "ok"})
         terra.authenticated_anvil_identity_from_sam.assert_called_once_with()
         stage.assert_called_once_with(
-            GcsSubmissionSources.parse(args.wdl, args.weights, args.files, recursive=args.recursive),
+            parse_gcs_submission_sources(
+                request.wdl, request.weights, list(request.files or ()), recursive=request.recursive
+            ),
             unittest.mock.ANY,
             credentials="vm-credentials",
             project="vm-project",
@@ -390,34 +417,37 @@ class GcsSubmissionTests(unittest.TestCase):
             bundle_flow.call_args.kwargs["identity"],
             AnvilIdentity("person@example.org", "sam-subject"),
         )
-        self.assertEqual(bundle_flow.call_args.args[1].wdl, staged.wdl)
+        self.assertEqual(bundle_flow.call_args.args[0].wdl, staged["wdl"])
+        self.assertEqual(bundle_flow.call_args.args[0].weights, staged["weights"])
+        self.assertEqual(bundle_flow.call_args.args[0].other_files, staged["other_files"])
 
     def test_gcs_failure_stops_before_the_synapse_submission_flow(self) -> None:
         terra = Mock(credentials="vm-credentials", google_project="vm-project")
         terra.authenticated_anvil_identity_from_sam.return_value = AnvilIdentity(
             "person@example.org", "sam-subject"
         )
-        args = build_parser().parse_args(
-            [
-                "submit-anvil",
-                "--wdl",
-                "gs://source-bucket/model/workflow.wdl",
-                "--weights",
-                "gs://source-bucket/model/weights.pt",
-            ]
+        request = AnvilSubmissionRequest(
+            profile=_profile(),
+            wdl="gs://source-bucket/model/workflow.wdl",
+            weights="gs://source-bucket/model/weights.pt",
+            files=None,
+            recursive=False,
         )
         with (
-            patch("anvil_dream_participant.cli.participant.ParticipantTerraClient", return_value=terra),
             patch(
-                "anvil_dream_participant.cli.participant.stage_gcs_submission_files",
+                "anvil_dream_participant.submissions.operations.ParticipantTerraClient",
+                return_value=terra,
+            ),
+            patch(
+                "anvil_dream_participant.submissions.operations.stage_gcs_submission_files",
                 side_effect=GcsStagingError("object not found"),
             ),
-            patch("anvil_dream_participant.cli.participant._submit_bundle") as bundle_flow,
-            patch("anvil_dream_participant.cli.participant.ParticipantSynapseGateway") as synapse,
-            patch("anvil_dream_participant.cli.participant.progress"),
-            self.assertRaisesRegex(SystemExit, "submission staging failed: object not found"),
+            patch("anvil_dream_participant.submissions.operations.submit_bundle") as bundle_flow,
+            patch("anvil_dream_participant.submissions.operations.ParticipantSynapseGateway") as synapse,
+            patch("anvil_dream_participant.submissions.operations.progress"),
+            self.assertRaisesRegex(SubmissionStagingError, "object not found"),
         ):
-            _submit_anvil_bundle(participant_config_for_evaluation("9620030"), args)
+            submit_anvil_bundle(request)
 
         bundle_flow.assert_not_called()
         synapse.assert_not_called()

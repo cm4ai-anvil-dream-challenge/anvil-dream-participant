@@ -5,7 +5,6 @@ from unittest.mock import patch
 
 from synapseclient.core.exceptions import SynapseNoCredentialsError
 
-from anvil_dream_participant.config import ParticipantSynapseConfig
 from anvil_dream_participant.integrations.synapse import (
     ParticipantSynapseGateway,
     SynapseCredentialsError,
@@ -14,11 +13,11 @@ from anvil_dream_participant.integrations.synapse import (
 
 class SynapseAuthenticationTests(unittest.TestCase):
     def test_missing_profile_has_recovery_instructions(self) -> None:
-        config = ParticipantSynapseConfig(
-            queue_name="challenge",
-            evaluation_id="9620030",
-            submission_parent_id="syn123",
-        )
+        config = {
+            "queue_name": "challenge",
+            "evaluation_id": "9620030",
+            "submission_parent_id": "syn123",
+        }
         with patch(
             "anvil_dream_participant.integrations.synapse.synapseclient.login",
             side_effect=SynapseNoCredentialsError("expired PAT"),

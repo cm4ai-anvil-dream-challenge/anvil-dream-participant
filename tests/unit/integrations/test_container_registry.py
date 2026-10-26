@@ -88,7 +88,7 @@ class ContainerRegistryTests(unittest.TestCase):
 
         image = verify_public_container_image(image_ref, session=session)
 
-        self.assertEqual(image.platforms, ("linux/amd64", "linux/arm64"))
+        self.assertEqual(image["platforms"], ("linux/amd64", "linux/arm64"))
         self.assertTrue(response.closed)
         url, request = session.requests[0]
         self.assertEqual(
@@ -108,7 +108,7 @@ class ContainerRegistryTests(unittest.TestCase):
 
         image = verify_public_container_image(image_ref, session=session)
 
-        self.assertEqual(image.platforms, ("linux/amd64",))
+        self.assertEqual(image["platforms"], ("linux/amd64",))
         self.assertNotIn("Docker-Content-Digest", response.headers)
 
     def test_accepts_docker_manifest_list_with_amd64(self) -> None:
@@ -122,7 +122,7 @@ class ContainerRegistryTests(unittest.TestCase):
 
         image = verify_public_container_image(image_ref, session=session)
 
-        self.assertIn("linux/amd64", image.platforms)
+        self.assertIn("linux/amd64", image["platforms"])
         self.assertIn(
             "application/vnd.docker.distribution.manifest.list.v2+json",
             session.requests[0][1]["headers"]["Accept"],
@@ -154,7 +154,7 @@ class ContainerRegistryTests(unittest.TestCase):
 
         image = verify_public_container_image(image_ref, session=session)
 
-        self.assertEqual(image.platforms, ("linux/amd64",))
+        self.assertEqual(image["platforms"], ("linux/amd64",))
         self.assertTrue(manifest_response.closed)
         self.assertTrue(config_response.closed)
         self.assertEqual(
@@ -204,7 +204,7 @@ class ContainerRegistryTests(unittest.TestCase):
 
         image = verify_public_container_image(image_ref, session=session)
 
-        self.assertEqual(image.platforms, ("linux/amd64",))
+        self.assertEqual(image["platforms"], ("linux/amd64",))
         self.assertTrue(unauthorized.closed)
         self.assertTrue(token.closed)
         self.assertTrue(manifest.closed)
@@ -308,7 +308,7 @@ class ContainerRegistryTests(unittest.TestCase):
 
                 verified = verify_public_container_image(image_ref, session=session)
 
-                self.assertEqual(verified.image, image_ref)
+                self.assertEqual(verified["image"], image_ref)
                 self.assertEqual(
                     session.requests[0][0],
                     f"https://registry-1.docker.io/v2/library/ubuntu/manifests/{digest}",

@@ -2,13 +2,15 @@ from __future__ import annotations
 
 import unittest
 
-from anvil_dream_participant.benchmarking.contract import EvaluationResultContractError
-from anvil_dream_participant.benchmarking.image_results import (
+from anvil_dream_participant.challenges.hpa.benchmarking.contract import (
+    EvaluationResultContractError,
+)
+from anvil_dream_participant.challenges.hpa.benchmarking.image_results import (
     PIXELS_PER_IMAGE,
     ImageResult,
 )
-from anvil_dream_participant.benchmarking.metrics import ComparisonMetrics
-from anvil_dream_participant.benchmarking.reducer import ImageResultsReducer
+from anvil_dream_participant.challenges.hpa.benchmarking.metrics import ComparisonMetrics
+from anvil_dream_participant.challenges.hpa.benchmarking.reducer import ImageResultsReducer
 
 
 def _image(

@@ -23,7 +23,7 @@ class SynapseUploadTests(unittest.TestCase):
             annotations={"dreamBundleSha256": hashlib.sha256(payload).hexdigest()},
             versionNumber=5,
         )
-        gateway = ParticipantSynapseGateway.__new__(ParticipantSynapseGateway)
+        gateway = ParticipantSynapseGateway()
         gateway.client = Mock()
         gateway.client.findEntityId.return_value = "synExisting"
         gateway.client.get.return_value = existing
@@ -38,8 +38,8 @@ class SynapseUploadTests(unittest.TestCase):
             archive.write_bytes(payload)
             result = gateway.upload_and_submit(str(archive), "synParent", "run", None)
 
-        self.assertTrue(result.reused)
-        self.assertEqual(result.submission.id, "55")
+        self.assertTrue(result["reused"])
+        self.assertEqual(result["submission"].id, "55")
         gateway.client.findEntityId.assert_called_once_with("submission.tar", parent="synParent")
         gateway.client.get.assert_called_once_with("synExisting", downloadFile=False)
         gateway.client.store.assert_not_called()
@@ -62,7 +62,7 @@ class SynapseUploadTests(unittest.TestCase):
             versionNumber=1,
         )
         uploaded = SimpleNamespace(id="synUploaded")
-        gateway = ParticipantSynapseGateway.__new__(ParticipantSynapseGateway)
+        gateway = ParticipantSynapseGateway()
         gateway.client = Mock()
         gateway.client.findEntityId.return_value = "synExisting"
         gateway.client.get.return_value = existing
@@ -76,7 +76,7 @@ class SynapseUploadTests(unittest.TestCase):
             archive.write_bytes(new_payload)
             result = gateway.upload_and_submit(str(archive), "synParent", "run", "team7")
 
-        self.assertFalse(result.reused)
+        self.assertFalse(result["reused"])
         stored_file = gateway.client.store.call_args.args[0]
         self.assertEqual(stored_file.path, str(archive))
         self.assertEqual(stored_file.parentId, "synParent")
@@ -99,7 +99,7 @@ class SynapseUploadTests(unittest.TestCase):
             annotations={},
             versionNumber=5,
         )
-        gateway = ParticipantSynapseGateway.__new__(ParticipantSynapseGateway)
+        gateway = ParticipantSynapseGateway()
         gateway.client = Mock()
         gateway.client.findEntityId.return_value = "synExisting"
         gateway.client.get.return_value = existing
@@ -114,7 +114,7 @@ class SynapseUploadTests(unittest.TestCase):
             archive.write_bytes(payload)
             result = gateway.upload_and_submit(str(archive), "synParent", "run", None)
 
-        self.assertFalse(result.reused)
+        self.assertFalse(result["reused"])
         stored_file = gateway.client.store.call_args.args[0]
         self.assertEqual(
             stored_file.annotations["dreamBundleSha256"],
@@ -134,7 +134,7 @@ class SynapseUploadTests(unittest.TestCase):
             versionNumber=2,
         )
         uploaded = SimpleNamespace(id="synUploaded")
-        gateway = ParticipantSynapseGateway.__new__(ParticipantSynapseGateway)
+        gateway = ParticipantSynapseGateway()
         gateway.client = Mock()
         gateway.client.findEntityId.return_value = "synExisting"
         gateway.client.get.return_value = existing
@@ -148,7 +148,7 @@ class SynapseUploadTests(unittest.TestCase):
             archive.write_bytes(payload)
             result = gateway.upload_and_submit(str(archive), "synParent", "run", None)
 
-        self.assertFalse(result.reused)
+        self.assertFalse(result["reused"])
         gateway.client.store.assert_called_once()
         gateway.client.submit.assert_called_once_with("synQueue", uploaded, name="run")
 
@@ -171,7 +171,7 @@ class SynapseUploadTests(unittest.TestCase):
                     annotations={},
                     versionNumber=1,
                 )
-                gateway = ParticipantSynapseGateway.__new__(ParticipantSynapseGateway)
+                gateway = ParticipantSynapseGateway()
                 gateway.client = Mock()
                 gateway.client.findEntityId.return_value = "synExisting"
                 gateway.client.get.return_value = existing
@@ -189,7 +189,7 @@ class SynapseUploadTests(unittest.TestCase):
                 gateway.client.submit.assert_not_called()
 
     def test_parent_privacy_failure_stops_lookup_and_upload(self) -> None:
-        gateway = ParticipantSynapseGateway.__new__(ParticipantSynapseGateway)
+        gateway = ParticipantSynapseGateway()
         gateway.client = Mock()
         gateway.evaluation = Mock(return_value="synQueue")
         gateway.assert_private_to_submitter = Mock(
@@ -207,7 +207,7 @@ class SynapseUploadTests(unittest.TestCase):
         gateway.client.submit.assert_not_called()
 
     def test_privacy_failure_deletes_only_new_version_of_existing_tar(self) -> None:
-        gateway = ParticipantSynapseGateway.__new__(ParticipantSynapseGateway)
+        gateway = ParticipantSynapseGateway()
         gateway.client = Mock()
         gateway.client.findEntityId.return_value = "synExisting"
         gateway.client.get.return_value = SimpleNamespace(

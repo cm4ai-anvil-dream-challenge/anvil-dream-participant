@@ -6,10 +6,16 @@ import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from anvil_dream_participant.benchmarking.aggregate import EvaluationAggregate
-from anvil_dream_participant.benchmarking.contract import EvaluationResultContractError
-from anvil_dream_participant.benchmarking.metrics import ComparisonMetrics
-from anvil_dream_participant.benchmarking.score import ScoreResult, score_evaluation, write_score_result
+from anvil_dream_participant.challenges.hpa.benchmarking.aggregate import EvaluationAggregate
+from anvil_dream_participant.challenges.hpa.benchmarking.contract import (
+    EvaluationResultContractError,
+)
+from anvil_dream_participant.challenges.hpa.benchmarking.metrics import ComparisonMetrics
+from anvil_dream_participant.challenges.hpa.benchmarking.score import (
+    ScoreResult,
+    score_evaluation,
+    write_score_result,
+)
 
 
 def aggregate_for(

@@ -1,13 +1,14 @@
-# Public evaluation benchmark
+# User evaluation tools
 
 This package benchmarks an already merged `image-results.jsonl` file. The organizer grades
 individual prediction images and gathers their results into that file. The benchmark reads the
 per-image results, computes evaluation-wide metrics and a score, and writes three JSON files.
 It does not need prediction PNGs, target images, shard receipts, or GCS access.
 
-The implementation is [`evaluation.py`](../benchmarking/evaluation.py). The organizer calls the same module from
-`benchmark.wdl`. The participant package
-works on its own; running the Python benchmark does not require the organizer package.
+The HPA implementation is [`evaluation.py`](../challenges/hpa/benchmarking/evaluation.py). The
+participant CLI adapts its command-line arguments and calls the selected challenge profile's
+benchmark operation. The participant package works on its own; running the Python benchmark does
+not require the organizer package.
 
 ## Input file
 
@@ -37,7 +38,8 @@ target pixel values for one `512 × 512` image, and each sum runs over its 262,1
 | `root_mean_squared_error` | Square root of `squared_error_sum / 262144`. |
 | `cosine_similarity` | `dot_product_sum / (sqrt(prediction_square_sum) × sqrt(target_square_sum))`, clamped to `[-1, 1]`, or `null` if either norm is zero. |
 
-The grader computes these values from prediction and target images using float64 arithmetic.
+The grader computes these values from uint8 prediction PNGs and target images using float64
+arithmetic.
 Numbers must be finite; the three derived metrics must agree with the sums. The benchmark
 adds the sums across images, takes the largest image-level maximum error, and recalculates
 evaluation-wide MAE, RMSE, and cosine similarity. The fixed image size supplies the pixel count.
@@ -60,11 +62,11 @@ the file instead of loading all rows into memory.
 
 ## Run it
 
-Install the published participant package and pass the merged file:
+From a source checkout, install the participant project and pass the merged file:
 
 ```sh
-python -m pip install --upgrade anvil-dream-participant
-python -m anvil_dream_participant.benchmarking.evaluation \
+python -m pip install -e ./participant
+python -m anvil_dream_participant.cli.benchmark \
   --image-results image-results.jsonl \
   --dataset-id YOUR_DATASET_ID \
   --comparison-report comparison-report.json \
@@ -94,6 +96,5 @@ The outputs are:
 | `score-result.json` | Numeric score and its four named components. |
 
 To reproduce an official benchmark result, use the same JSONL bytes and dataset ID. The
-organizer's `BenchmarkEvaluation` WDL task
-invokes this Python module. The participant package includes this benchmark and its input
-contract. Raw grading and gathering remain organizer tasks.
+organizer's `BenchmarkEvaluation` WDL task invokes this Python module. The participant package
+includes this benchmark and its input contract. Raw grading and gathering remain organizer tasks.

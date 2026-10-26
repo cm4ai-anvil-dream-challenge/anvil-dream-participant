@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "anvil-dream-participant"
-version = "0.2.1"
+version = "0.3.0"
 description = "AnVIL DREAM participant CLI, submission tools, and benchmark"
 readme = "README.md"
 license = "Apache-2.0"
@@ -18,6 +18,8 @@ classifiers = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "click>=8.1,<9",
+    "pydantic>=2.11,<3",
     "google-auth>=2.40,<3",
     "google-cloud-storage>=3.1,<4",
     "miniwdl>=1.13,<2",
@@ -48,25 +50,34 @@ anvil-dream-participant = "anvil_dream_participant.cli:main"
 include-package-data = false
 packages = [
     "anvil_dream_participant",
-    "anvil_dream_participant.benchmarking",
     "anvil_dream_participant.cli",
+    "anvil_dream_participant.challenges",
+    "anvil_dream_participant.challenges.hpa",
+    "anvil_dream_participant.challenges.hpa.benchmarking",
+    "anvil_dream_participant.challenges.hpa.examples",
+    "anvil_dream_participant.challenges.hpa.examples.proticelli",
+    "anvil_dream_participant.docs",
     "anvil_dream_participant.integrations",
     "anvil_dream_participant.submissions",
     "anvil_dream_participant.workflows",
 ]
 
 [tool.setuptools.package-dir]
-anvil_dream_participant = "."
+anvil_dream_participant = "participant"
+"anvil_dream_participant.cli" = "cli"
+"anvil_dream_participant.challenges" = "challenges"
+"anvil_dream_participant.challenges.hpa" = "challenges/hpa"
+"anvil_dream_participant.docs" = "docs"
 
 [tool.setuptools.package-data]
-"anvil_dream_participant" = [
-    "README.md", "docs/*.md", "docs/*.json", "docs/assets/*.png",
+"anvil_dream_participant.docs" = ["*.md", "*.json", "assets/*.png"]
+"anvil_dream_participant.challenges.hpa" = [
+    "benchmarking/README.md",
     "examples/proticelli/*.py", "examples/proticelli/*.json",
     "examples/proticelli/*.wdl", "examples/proticelli/*.txt",
     "examples/proticelli/Dockerfile", "examples/proticelli/README.md",
     "examples/proticelli/scripts/*.py", "examples/proticelli/scripts/*.sh",
 ]
-"anvil_dream_participant.benchmarking" = ["README.md"]
 
 [tool.ruff]
 target-version = "py312"

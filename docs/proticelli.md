@@ -4,16 +4,17 @@ This example receives one lane of independently pinned, pre-aligned images and
 protein FASTA files. Its `PredictionInput` record contains:
 
 - `prediction_id`: stable identity used to name the prediction
-- `microtubules_image`, `nucleus_image`, and `er_image`: separate 512 x 512 uint8
+- `microtubules_image`, `nucleus_image`, and `er_image`: separate 512-by-512 uint8
   TIFFs or 8-bit grayscale PNGs in ProtiCelli's channel order
 - `fasta_file`: an explicit FASTA containing one or more protein sequences
 - `mask_image`: an optional localized cell mask, validated by the adapter
 
 The public task receives no grading target, target-protein label, or cell-line
-label. The organizer keeps the 2D target image in private storage and supplies it
+label. The organizer keeps the 2D uint8 target image in private storage and supplies it
 only to the trusted grading workflow. The images are assumed to be spatially
-aligned already. The adapter accepts uint8 image pixels in the 0–255 range and applies
-the model normalization before inference.
+aligned already. Input pixels use the native 0–255 intensity scale. The adapter
+applies model-specific normalization internally and restores predictions to that
+scale before encoding them as uint8 PNGs.
 
 The command placeholder `~{write_json(inputs)}` creates the JSON array of
 localized file paths. Keep it in the command. The prediction script reads each
@@ -25,21 +26,6 @@ BLAST against the reference database in the weights ZIP, walks hits by score
 until it finds a gene in the model vocabulary, and fails the task explicitly if
 no hit is supported. The selected accession, hit rank, sequence digest, and
 score are stored in each output PNG's `provenance` text field for provenance.
-
-## Image normalization and output encoding
-
-The adapter explicitly applies upstream `ImageNormalizer(bit_depth=8)` to each
-cell. It places the reference channels in the upstream four-channel layout,
-leaves the unavailable protein channel at zero, and then extracts the normalized
-microtubule, nucleus, and ER channels for inference. It retains the clipped
-nucleus maximum as the per-cell intensity scale, with a reference-channel
-fallback when the nucleus scale is zero.
-
-To write a prediction, it multiplies the model output by that retained scale,
-clips to 0–255, rounds to the nearest integer, and casts to uint8. This matches
-the adapter's normalization scale; it does not use the older fixed
-`prediction / 1.3 * 255` conversion. Model inference remains floating point.
-PNG provenance records the protein match, sequence digest, and nucleus scale.
 
 The expected outer weights ZIP layout is:
 
@@ -80,7 +66,7 @@ choose your own paths:
 mkdir -p "$PWD/model-assets"
 unzip -q "$PWD/weights-handoff.zip" \
   'checkpoint/unet/*' 'checkpoint/unet_ema/*' 'vae/*' -d "$PWD/model-assets"
-bash examples/proticelli/scripts/build_weights.sh \
+bash challenges/hpa/examples/proticelli/scripts/build_weights.sh \
   "$PWD/model-assets" \
   "$PWD/rebuilt-weights.zip" \
   "$PWD/uniprot_sprot_human.dat.gz"
@@ -107,10 +93,10 @@ gene map is a TSV with `accession`, `hgnc_symbol`, and optionally
 `ensembl_gene_ids` columns.
 
 The checked-in WDL pins the published `quay.io/anvil_dream/blast-proticelli-example`
-image at digest `sha256:9e03517cc45ac0ad72386620d34bf24a54a12a297f65ab79a2c2ac9a9debfa18`.
+image at digest `sha256:59c9a92a5b0b73f1298bf4eac1b9a02d57d505d349c9cd71f43c99f5314d8bf8`.
 The Dockerfile pins ProtiCelli source commit `f894e78d2fbc0530c3637d5f7c457ead0738a5d0`,
 BLAST+ 2.17.0 with a tarball checksum, and a Python 3.12 base image digest. Its
-[runtime constraints](../examples/proticelli/model-runtime.constraints.txt) were read from the published image;
+[runtime constraints](../challenges/hpa/examples/proticelli/model-runtime.constraints.txt) were read from the published image;
 they pin PyTorch, torchvision, and the model's Python dependency stack for rebuilds. The
 recorded run retains its original image digest. The current image adds PNG,
 mask, and multi-sequence FASTA support. When building
@@ -124,7 +110,7 @@ local image before publishing a replacement digest:
 
 ```bash
 docker build --platform linux/amd64 -t proticelli-rebuild-check \
-  examples/proticelli
+  challenges/hpa/examples/proticelli
 docker run --rm --platform linux/amd64 --entrypoint python3 \
   proticelli-rebuild-check /opt/proticelli/predict.py --help
 ```

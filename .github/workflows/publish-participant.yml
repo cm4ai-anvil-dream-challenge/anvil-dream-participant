@@ -71,7 +71,19 @@ jobs:
           cd "$RUNNER_TEMP"
           "$RUNNER_TEMP/participant-wheel-venv/bin/python" -B \
             "$GITHUB_WORKSPACE/tests/integration/packaging/smoke_participant_wheel.py" \
-            "$GITHUB_WORKSPACE/examples/proticelli/participant.wdl"
+            "$GITHUB_WORKSPACE/challenges/hpa/examples/proticelli/participant.wdl"
+
+      - name: Smoke the installed source distribution
+        run: |
+          python -m venv "$RUNNER_TEMP/participant-sdist-venv"
+          SDIST_PY="$RUNNER_TEMP/participant-sdist-venv/bin/python"
+          "$SDIST_PY" -m pip install "$RUNNER_TEMP/participant-dist/"*.tar.gz
+          "$SDIST_PY" -m pip check
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/participant-sdist-venv/bin/anvil-dream-participant" --help
+          "$SDIST_PY" -B \
+            "$GITHUB_WORKSPACE/tests/integration/packaging/smoke_participant_wheel.py" \
+            "$GITHUB_WORKSPACE/challenges/hpa/examples/proticelli/participant.wdl"
 
       - name: Save validated distributions
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9

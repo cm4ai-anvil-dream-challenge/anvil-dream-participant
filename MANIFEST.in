@@ -1,15 +1,20 @@
 include LICENSE
-recursive-include docs *.md
-recursive-include examples *.py *.json *.wdl *.txt *.sh Dockerfile README.md
+include MANIFEST.in
+include Makefile
+include README.md
+include pyproject.toml
+include scripts/release.py
+
+recursive-include participant *.py
+recursive-include cli *.py
+recursive-include challenges *.py
+recursive-include challenges/hpa/benchmarking *.md
+recursive-include challenges/hpa/examples/proticelli *.py *.json *.wdl *.txt *.sh Dockerfile README.md
+recursive-include docs *.md *.json *.png
 recursive-include tests *.py
+
 global-exclude *.py[cod]
 prune build
 prune dist
 prune .venv
 prune venv
-
-include Makefile
-include scripts/release.py
-
-include docs/synapse-pages.json
-recursive-include docs/assets *.png

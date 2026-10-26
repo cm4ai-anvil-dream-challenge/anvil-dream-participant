@@ -18,7 +18,7 @@ from unittest.mock import Mock, patch
 
 
 BUILDER = Path(__file__).resolve().parents[3] / (
-    "examples/proticelli/scripts/build_weights.py"
+    "challenges/hpa/examples/proticelli/scripts/build_weights.py"
 )
 if importlib.util.find_spec("tqdm") is None:
 
