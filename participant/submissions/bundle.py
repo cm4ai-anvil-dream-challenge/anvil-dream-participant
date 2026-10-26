@@ -353,12 +353,8 @@ class SubmissionBundleManifest:
 @dataclass(frozen=True)
 class SubmissionBundle:
     manifest: SubmissionBundleManifest
-    _files: tuple[tuple[str, Path], ...]
-
-    @property
-    def files(self) -> tuple[tuple[str, Path], ...]:
-        """The archive member paths and their local source files."""
-        return self._files
+    files: tuple[tuple[str, Path], ...]
+    """The archive member paths and their local source files."""
 
     @classmethod
     def create(
@@ -441,7 +437,7 @@ class SubmissionBundle:
         try:
             with target.open("wb") as output, tarfile.open(fileobj=output, mode="w", format=tarfile.USTAR_FORMAT) as archive:
                 _add_bytes(archive, ARCHIVE_MANIFEST, self.manifest.canonical_json())
-                for path, source in self._files:
+                for path, source in self.files:
                     digest, size = file_metadata(source)
                     expected = self._entry(path)
                     if digest != expected.sha256 or size != expected.size_bytes:
