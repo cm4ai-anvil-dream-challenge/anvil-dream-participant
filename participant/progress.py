@@ -41,20 +41,28 @@ class ProgressReporter:
         self._announced = False
         self._last_phase: str | None = None
         self._last_phase_at = time.monotonic()
+        self._wait_depth = 0
 
-    @property
-    def lock(self) -> threading.RLock:
-        return self._lock
-
-    @property
-    def last_phase(self) -> str | None:
+    def heartbeat_due(self, *, interval_seconds: float) -> tuple[str, float] | None:
+        """Return the phase and elapsed seconds when a heartbeat should repeat."""
         with self._lock:
-            return self._last_phase
+            if self._last_phase is None or self._wait_depth:
+                return None
+            elapsed = time.monotonic() - self._last_phase_at
+            if elapsed < interval_seconds:
+                return None
+            return self._last_phase, elapsed
 
-    @property
-    def last_phase_at(self) -> float:
+    @contextmanager
+    def planned_wait(self) -> Iterator[None]:
+        """Suspend heartbeats while the caller expects a long legitimate wait."""
         with self._lock:
-            return self._last_phase_at
+            self._wait_depth += 1
+        try:
+            yield
+        finally:
+            with self._lock:
+                self._wait_depth -= 1
 
     def write_log(self, message: str) -> None:
         try:
