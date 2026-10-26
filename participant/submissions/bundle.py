@@ -66,7 +66,7 @@ def _canonical_json(value: object) -> bytes:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
 
 
-def _path(value: object, field: str) -> str:
+def path_value(value: object, field: str) -> str:
     text = str(value or "")
     parsed = PurePosixPath(text)
     if (
@@ -80,10 +80,10 @@ def _path(value: object, field: str) -> str:
     return text
 
 
-def _runtime_asset_path(archive_path: str) -> str:
+def runtime_asset_path(archive_path: str) -> str:
     if not archive_path.startswith(ARCHIVE_OTHER_PREFIX):
         raise BundleValidationError("runtime asset paths must be under other/")
-    relative = _path(
+    relative = path_value(
         archive_path.removeprefix(ARCHIVE_OTHER_PREFIX),
         "runtime asset path",
     )
@@ -225,7 +225,7 @@ class BundleFile:
     size_bytes: int
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "path", _path(self.path, "file path"))
+        object.__setattr__(self, "path", path_value(self.path, "file path"))
         object.__setattr__(self, "sha256", _digest(self.sha256, "file sha256"))
         object.__setattr__(self, "size_bytes", _size(self.size_bytes, "file size_bytes"))
 
@@ -274,7 +274,7 @@ class SubmissionBundleManifest:
         if any(not path.startswith(ARCHIVE_OTHER_PREFIX) for path in paths):
             raise BundleValidationError("other file paths must be under other/")
         for path in paths:
-            _runtime_asset_path(path)
+            runtime_asset_path(path)
         if len(paths) != len(set(paths)):
             raise BundleValidationError("other file paths must be unique")
         if tuple(paths) != tuple(sorted(paths)):
@@ -355,6 +355,11 @@ class SubmissionBundle:
     manifest: SubmissionBundleManifest
     _files: tuple[tuple[str, Path], ...]
 
+    @property
+    def files(self) -> tuple[tuple[str, Path], ...]:
+        """The archive member paths and their local source files."""
+        return self._files
+
     @classmethod
     def create(
         cls,
@@ -370,8 +375,8 @@ class SubmissionBundle:
     ) -> "SubmissionBundle":
         wdl_path = _regular_path(wdl, "WDL")
         weights_path = _regular_path(weights, "weights")
-        wdl_sha, wdl_size = _file_metadata(wdl_path)
-        weights_sha, weights_size = _file_metadata(weights_path)
+        wdl_sha, wdl_size = file_metadata(wdl_path)
+        weights_sha, weights_size = file_metadata(weights_path)
         images = _extract_container_images(wdl_path)
         sources: dict[str, Path] = {ARCHIVE_WDL: wdl_path, ARCHIVE_WEIGHTS: weights_path}
         other_entries: list[BundleFile] = []
@@ -385,10 +390,10 @@ class SubmissionBundle:
                     continue
                 if not _is_regular(candidate):
                     raise BundleValidationError(f"other files contains a non-regular entry: {relative}")
-                archive_path = f"{ARCHIVE_OTHER_PREFIX}{_path(relative, 'other file path')}"
+                archive_path = f"{ARCHIVE_OTHER_PREFIX}{path_value(relative, 'other file path')}"
                 if archive_path in sources or archive_path == ARCHIVE_MANIFEST:
                     raise BundleValidationError(f"archive path collides with reserved path: {archive_path}")
-                digest, size = _file_metadata(candidate)
+                digest, size = file_metadata(candidate)
                 sources[archive_path] = candidate.resolve()
                 other_entries.append(BundleFile(archive_path, digest, size))
         provisional = SubmissionBundleManifest(
@@ -425,7 +430,7 @@ class SubmissionBundle:
                 with tqdm.wrapattr(handle, "read", total=Path(path).stat().st_size,
                                    desc="Verifying submission TAR digest", disable=not progress,
                                    unit="B", unit_scale=True, unit_divisor=1024) as tracked:
-                    _copy_chunks(tracked, digest=digest)
+                    copy_chunks(tracked, digest=digest)
         except OSError as error:
             raise BundleValidationError(f"cannot read bundle archive: {path}") from error
         return digest.hexdigest()
@@ -437,11 +442,11 @@ class SubmissionBundle:
             with target.open("wb") as output, tarfile.open(fileobj=output, mode="w", format=tarfile.USTAR_FORMAT) as archive:
                 _add_bytes(archive, ARCHIVE_MANIFEST, self.manifest.canonical_json())
                 for path, source in self._files:
-                    digest, size = _file_metadata(source)
+                    digest, size = file_metadata(source)
                     expected = self._entry(path)
                     if digest != expected.sha256 or size != expected.size_bytes:
                         raise BundleValidationError(f"source file {path} changed while building the archive")
-                    _add_path(archive, path, source, size)
+                    add_path(archive, path, source, size)
         except BundleValidationError:
             raise
         except (OSError, tarfile.TarError) as error:
@@ -477,7 +482,7 @@ def _regular_directory(path: Path) -> Path:
     return directory.resolve()
 
 
-def _copy_chunks(source: BinaryIO, *, destination: BinaryIO | None = None, digest: Any | None = None, limit: int | None = None) -> int:
+def copy_chunks(source: BinaryIO, *, destination: BinaryIO | None = None, digest: Any | None = None, limit: int | None = None) -> int:
     total = 0
     while True:
         chunk = source.read(_COPY_CHUNK_BYTES)
@@ -493,11 +498,11 @@ def _copy_chunks(source: BinaryIO, *, destination: BinaryIO | None = None, diges
     return total
 
 
-def _file_metadata(path: Path) -> tuple[str, int]:
+def file_metadata(path: Path) -> tuple[str, int]:
     digest = hashlib.sha256()
     try:
         with path.open("rb") as source:
-            size = _copy_chunks(source, digest=digest)
+            size = copy_chunks(source, digest=digest)
     except OSError as error:
         raise BundleValidationError(f"cannot read regular file: {path}") from error
     return digest.hexdigest(), size
@@ -507,7 +512,7 @@ def _add_bytes(archive: tarfile.TarFile, path: str, data: bytes) -> None:
     archive.addfile(_tar_info(path, len(data)), io.BytesIO(data))
 
 
-def _add_path(archive: tarfile.TarFile, path: str, source: Path, size: int) -> None:
+def add_path(archive: tarfile.TarFile, path: str, source: Path, size: int) -> None:
     try:
         with source.open("rb") as handle:
             archive.addfile(_tar_info(path, size), handle)

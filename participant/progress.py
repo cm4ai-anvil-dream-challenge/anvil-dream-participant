@@ -26,7 +26,7 @@ def transfer_progress(description: str) -> Iterator[Callable[[int, int], None]]:
         yield update
 
 
-def _timestamp(*, short: bool = False) -> str:
+def timestamp(*, short: bool = False) -> str:
     format_string = "%H:%M:%S" if short else "%Y-%m-%d %H:%M:%S"
     return datetime.now().astimezone().strftime(format_string)
 
@@ -42,16 +42,30 @@ class ProgressReporter:
         self._last_phase: str | None = None
         self._last_phase_at = time.monotonic()
 
-    def _write_log(self, message: str) -> None:
+    @property
+    def lock(self) -> threading.RLock:
+        return self._lock
+
+    @property
+    def last_phase(self) -> str | None:
+        with self._lock:
+            return self._last_phase
+
+    @property
+    def last_phase_at(self) -> float:
+        with self._lock:
+            return self._last_phase_at
+
+    def write_log(self, message: str) -> None:
         try:
             self.log_path.parent.mkdir(parents=True, exist_ok=True)
             with self.log_path.open("a", encoding="utf-8") as handle:
-                handle.write(f"[{_timestamp()}] {message}\n")
+                handle.write(f"[{timestamp()}] {message}\n")
         except OSError:
             # Logging must never prevent a submission from running.
             pass
 
-    def _write_terminal(self, text: str) -> None:
+    def write_terminal(self, text: str) -> None:
         self.stream.write(text + "\n")
         self.stream.flush()
 
@@ -59,20 +73,20 @@ class ProgressReporter:
         """Write a timestamped phase message immediately."""
         with self._lock:
             if not self._announced:
-                self._write_terminal(
-                    f"[{_timestamp(short=True)}] Log file: {self.log_path}"
+                self.write_terminal(
+                    f"[{timestamp(short=True)}] Log file: {self.log_path}"
                 )
-                self._write_log(f"Log file: {self.log_path}")
+                self.write_log(f"Log file: {self.log_path}")
                 self._announced = True
             self._last_phase = message
             self._last_phase_at = time.monotonic()
-            self._write_terminal(f"[{_timestamp(short=True)}] {message}")
-            self._write_log(message)
+            self.write_terminal(f"[{timestamp(short=True)}] {message}")
+            self.write_log(message)
 
     def close(self, *, failed: bool = False) -> None:
         with self._lock:
             if failed:
-                self._write_log("Run failed")
+                self.write_log("Run failed")
 
 
 _REPORTER = ProgressReporter()
