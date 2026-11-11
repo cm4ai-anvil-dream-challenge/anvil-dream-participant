@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 import WDL
@@ -20,6 +21,24 @@ class WorkflowContractError(ValueError):
 class ParticipantWorkflow:
     name: str
     tasks: tuple[Any, ...]
+
+
+def parse_participant_workflow(
+    path: str | Path,
+    *,
+    max_wdl_bytes: int = 1_048_576,
+    require_digest_images: bool = True,
+    require_exact_participant_shape: bool = False,
+) -> ParticipantWorkflow:
+    """Preserve the published HPA validator API without loading HPA on import."""
+    from ..challenges.hpa.workflows import parse_participant_workflow as parse_hpa
+
+    return parse_hpa(
+        path,
+        max_wdl_bytes=max_wdl_bytes,
+        require_digest_images=require_digest_images,
+        require_exact_participant_shape=require_exact_participant_shape,
+    )
 
 
 def is_literal(expr: Any) -> bool:

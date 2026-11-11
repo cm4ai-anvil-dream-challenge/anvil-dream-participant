@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "anvil-dream-participant"
 version = "0.4.0"
-description = "AnVIL DREAM participant CLI, submission tools, and benchmark"
+description = "AnVIL DREAM participant CLI and submission tools"
 readme = "README.md"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
@@ -53,7 +53,6 @@ packages = [
     "anvil_dream_participant.cli",
     "anvil_dream_participant.challenges",
     "anvil_dream_participant.challenges.hpa",
-    "anvil_dream_participant.challenges.hpa.benchmarking",
     "anvil_dream_participant.challenges.hpa.examples",
     "anvil_dream_participant.challenges.hpa.examples.proticelli",
     "anvil_dream_participant.docs",
@@ -72,7 +71,6 @@ anvil_dream_participant = "participant"
 [tool.setuptools.package-data]
 "anvil_dream_participant.docs" = ["*.md", "*.json", "assets/*.png"]
 "anvil_dream_participant.challenges.hpa" = [
-    "benchmarking/README.md",
     "examples/proticelli/*.py", "examples/proticelli/*.json",
     "examples/proticelli/*.wdl", "examples/proticelli/*.txt",
     "examples/proticelli/Dockerfile", "examples/proticelli/README.md",

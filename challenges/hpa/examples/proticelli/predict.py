@@ -11,6 +11,8 @@ from pathlib import Path
 import proticelli_images
 import proticelli_model
 
+_DTYPES = ("float32", "float16", "bfloat16")
+
 
 def predict_shard(
     inputs_manifest: str | Path,
@@ -18,12 +20,15 @@ def predict_shard(
     *,
     batch_size: int = 4,
     inference_steps: int = 50,
+    dtype: str = "float32",
     seed: int = 0,
     output: str | Path,
 ) -> tuple[Path, ...]:
     """Map distinct FASTA sequences once and write ID-matched prediction PNGs."""
     if batch_size <= 0 or inference_steps <= 0:
         raise ValueError("batch_size and inference_steps must be positive")
+    if dtype not in _DTYPES:
+        raise ValueError(f"dtype must be one of {_DTYPES}")
     try:
         import numpy as np
         from proticelli import Model
@@ -48,7 +53,7 @@ def predict_shard(
             checkpoint_dir=checkpoint_dir,
             vae_dir=vae_dir,
             device="cuda",
-            dtype="float32",
+            dtype=dtype,
         )
         protein_vocabulary = model.protein_map
         vocabulary_index = proticelli_model.build_vocabulary_index(protein_vocabulary)
@@ -143,6 +148,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--weights", type=Path, required=True)
     parser.add_argument("--batch-size", type=int, default=4)
     parser.add_argument("--inference-steps", type=int, default=50)
+    parser.add_argument("--dtype", choices=_DTYPES, default="float32")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--output", type=Path, required=True)
     return parser
@@ -155,6 +161,7 @@ def main() -> None:
         args.weights,
         batch_size=args.batch_size,
         inference_steps=args.inference_steps,
+        dtype=args.dtype,
         seed=args.seed,
         output=args.output,
     )

@@ -16,6 +16,17 @@ EXAMPLE = ROOT / "challenges/hpa/examples/proticelli/participant.wdl"
 
 class WorkflowContractTests(unittest.TestCase):
 
+    def test_published_validator_import_preserves_the_main_api(self) -> None:
+        from anvil_dream_participant.workflows.wdl import parse_participant_workflow as published
+
+        workflow = published(EXAMPLE, require_exact_participant_shape=True)
+        self.assertEqual(workflow.name, "Predict")
+        self.assertEqual(validate_workflow_images(workflow), validate_workflow_images(
+            parse_participant_workflow(EXAMPLE, require_exact_participant_shape=True)
+        ))
+        with self.assertRaisesRegex(WorkflowContractError, "byte limit"):
+            published(EXAMPLE, max_wdl_bytes=1)
+
     def test_reference_implements_model_neutral_interface(self) -> None:
         image = "ghcr.io/example/participant-model@sha256:" + "b" * 64
         source, replacements = re.subn(

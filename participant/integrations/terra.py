@@ -10,7 +10,7 @@ from typing import Any
 import google.auth
 import requests
 from google.auth.exceptions import DefaultCredentialsError, RefreshError, TransportError
-from google.auth.transport.requests import Request
+from google.auth.transport.requests import AuthorizedSession, Request
 
 
 class TerraApiError(RuntimeError):
@@ -133,11 +133,13 @@ class ParticipantTerraClient:
         claimed = str(claimed_email or "").strip().casefold()
         if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", claimed):
             raise TerraApiError("--anvil-email must be a valid email address")
-        response = self.session.get(
-            "https://openidconnect.googleapis.com/v1/userinfo",
-            headers=self._headers(),
-            timeout=30,
-        )
+        try:
+            with AuthorizedSession(self.credentials) as session:
+                response = session.get("https://openidconnect.googleapis.com/v1/userinfo", timeout=30)
+        except TransportError as error:
+            raise _google_adc_transport_error() from error
+        except (DefaultCredentialsError, RefreshError) as error:
+            raise _google_adc_error() from error
         if not response.ok:
             raise TerraApiError(
                 "Could not verify the authenticated Google account. Refresh Google "

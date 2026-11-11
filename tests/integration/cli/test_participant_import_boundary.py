@@ -40,8 +40,7 @@ class ParticipantImportBoundaryTests(unittest.TestCase):
         script = """
 import sys
 from anvil_dream_participant.integrations.synapse import ParticipantSynapseGateway
-import anvil_dream_participant.challenges.hpa.benchmarking.evaluation as benchmark
-from anvil_dream_participant.challenges.hpa.benchmarking.image_results import ImageResult
+from anvil_dream_participant.challenges.hpa.profile import PROFILE
 from anvil_dream_participant.integrations.terra import ParticipantTerraClient
 from anvil_dream_participant.progress import ProgressReporter
 from anvil_dream_participant.submissions.bundle import SubmissionBundle, SubmissionBundleManifest
@@ -52,8 +51,8 @@ from tests.integration.packaging.verify_public_artifacts import is_forbidden_imp
 loaded = sorted(module for module in sys.modules if is_forbidden_import(module))
 if loaded:
     raise AssertionError(f"public participant imports loaded internal modules: {loaded}")
-if not callable(benchmark.benchmark_image_results) or ImageResult.__module__.startswith("organizer"):
-    raise AssertionError("public benchmark code is not owned by the participant package")
+if hasattr(PROFILE, "benchmark"):
+    raise AssertionError("participant profile exposes an evaluation operation")
 
 organizer_synapse = ("all_submission_bundles", "download_submission", "resolve_submitter_identity", "submitted_bundle_sha256")
 organizer_terra = ("workspace_path", "register_agora_method", "create_workspace", "workspace_bucket", "object_metadata", "upload_local")
@@ -225,10 +224,30 @@ class PublicArtifactBoundaryTests(unittest.TestCase):
                 ),
                 (
                     "anvil_dream_participant/challenges/hpa/profile.py",
-                    b"from ..benchmarking import evaluation\n",
+                    b"from .workflows import parse_participant_workflow\n",
                 ),
             ]
         )
+
+    def test_legacy_validator_exception_is_limited_to_its_public_entrypoint(self) -> None:
+        parser_import = b"from ..challenges.hpa.workflows import parse_participant_workflow\n"
+        _assert_architecture_boundaries(
+            [("anvil_dream_participant/workflows/wdl.py", parser_import)]
+        )
+        for name, source in (
+            ("anvil_dream_participant/workflows/other.py", parser_import),
+            (
+                "anvil_dream_participant/workflows/wdl.py",
+                b"from ..challenges.hpa.workflows import unrelated_helper\n",
+            ),
+            (
+                "anvil_dream_participant/workflows/wdl.py",
+                b"from ..challenges.hpa.profile import PROFILE\n",
+            ),
+        ):
+            with self.subTest(name=name, source=source):
+                with self.assertRaisesRegex(AssertionError, "core module"):
+                    _assert_architecture_boundaries([(name, source)])
 
     def test_project_and_wheel_metadata_reject_direct_organizer_dependencies(self) -> None:
         dependencies = (

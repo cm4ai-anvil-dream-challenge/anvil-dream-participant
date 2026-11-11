@@ -6,7 +6,7 @@ from __future__ import annotations
 DEFAULT_CHALLENGE_REFERENCE = "anvil_dream_participant.challenges.hpa.profile:PROFILE"
 
 
-def load_profile(ctx, fallback_reference: str | None = None):
+def load_profile(ctx):
     """Resolve the root challenge selection only inside an invoked command."""
     import click
 
@@ -18,9 +18,7 @@ def load_profile(ctx, fallback_reference: str | None = None):
         if isinstance(root_obj, dict)
         else None
     )
-    if fallback_reference is not None:
-        reference = fallback_reference
-    elif root_reference is not None:
+    if root_reference is not None:
         reference = root_reference
     else:
         reference = DEFAULT_CHALLENGE_REFERENCE

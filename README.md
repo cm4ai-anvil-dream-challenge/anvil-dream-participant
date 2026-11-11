@@ -2,7 +2,7 @@
 
 `anvil-dream-participant` is a standalone Python distribution for submitting
 participant-authored WDL workflows. It installs the `anvil-dream-participant` command and the public
-`anvil_dream_participant` modules, including the HPA challenge profile and runnable benchmark.
+`anvil_dream_participant` modules, including the HPA challenge profile.
 It does not include, import, or install the DREAM organizer package, and it does not read runtime assets
 from the parent repository.
 
@@ -17,7 +17,7 @@ imported from Synapse, with their original page IDs and source links.
 - [Quickstart](docs/quickstart.md) covers registration, setup, submission, and status.
 - [Submission contract](docs/contract.md) defines the WDL interface and prediction outputs.
 - [Container images](docs/container-images.md) covers publishing and digest pinning.
-- [Benchmark guide](docs/benchmark.md) defines metrics and local benchmarking.
+- [Local evaluation guide](docs/benchmark.md) points to the separate evaluation package.
 - [ProtiCelli example](docs/proticelli.md) explains the reference model adapter.
 - [Participant releases](docs/participant-releases.md) covers maintainer setup and PyPI publishing.
 
@@ -53,11 +53,10 @@ anvil-dream-participant --help
 anvil-dream-participant submit --help
 anvil-dream-participant submit-anvil --help
 anvil-dream-participant submission-status --help
-anvil-dream-participant benchmark --help
 ```
 
 The package includes the participant commands, WDL contract checks, private bundle format,
-Synapse client integration, Terra identity lookup, GCS staging, image validation, and status
+Synapse client integration, Terra identity lookup, GCS staging and status
 reporting. It does not need the organizer project to install or run.
 
 ## Install from this source checkout
@@ -91,36 +90,12 @@ published `ChallengeProfile`. An explicit `--evaluation-id` takes precedence ove
 evaluation. Java is not required. For an optional independent check with Cromwell WOMtool, see the
 [participant quickstart](docs/quickstart.md).
 
-## Run the benchmark
+## Evaluate HPA predictions
 
-The standalone participant package includes the exact benchmark implementation used by the
-organizer. The HPA implementation is
-[`anvil_dream_participant.challenges.hpa.benchmarking.evaluation`](challenges/hpa/benchmarking/evaluation.py).
-The command adapter is `anvil_dream_participant.cli.benchmark`; the corresponding organizer task
-is `BenchmarkEvaluation` in
-`organizer/workflows/templates/benchmark.wdl` in the source repository.
-The [benchmark guide](docs/benchmark.md) defines the complete input contract, command, score
-formula, outputs, and current limits.
+Local evaluation is provided by the separate
+[cm4ai-evaluate package](https://github.com/cm4ai-anvil-dream-challenge/cm4ai-evaluate).
+It compares predicted protein images with your own ground-truth images and reports
+raw diagnostic metrics. See the [local evaluation guide](docs/benchmark.md).
 
-| Output | Contents |
-|---|---|
-| `comparison-report.json` | Evaluation-wide MAE, RMSE, cosine similarity, maximum error, and compared image/pixel counts. |
-| `evaluation-aggregate.json` | Image and pixel counts plus one `metrics` object with additive sums and derived evaluation-wide metrics. |
-| `score-result.json` | Numeric 0–1 score and its MAE, RMSE, maximum-error, and cosine components. |
-
-Run it locally with an already merged `image-results.jsonl` file:
-
-```sh
-python -m pip install --upgrade anvil-dream-participant
-python -m anvil_dream_participant.cli.benchmark \
-  --image-results image-results.jsonl \
-  --comparison-report comparison-report.json \
-  --aggregate evaluation-aggregate.json \
-  --output score-result.json
-```
-
-Raw grading and shard gathering remain trusted organizer tasks. Current target TIFFs are private,
-so participants can run the benchmark only when they have the already merged JSONL input; WDL
-source visibility alone does not make raw grading runnable. A future self-run route needs a
-separately published participant-runnable raw-grading WDL and approved target inputs, followed by
-the benchmark task. The guide documents the input rows and exact standalone command.
+The participant package submits models and checks submission status. Official challenge
+evaluation runs on held-out data in the organizer environment.

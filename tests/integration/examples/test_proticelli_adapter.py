@@ -20,6 +20,18 @@ MODEL = load_participant_module("proticelli_model.py", "proticelli_model")
 
 
 class ProtiCelliAdapterTests(unittest.TestCase):
+    def test_precision_cli_preserves_fp32_default_and_accepts_fp16(self):
+        module = load_participant_module("predict.py", "proticelli_runner")
+        arguments = ["--inputs-manifest", "inputs.json", "--weights", "weights.zip",
+                     "--output", "predictions"]
+        self.assertEqual(module.build_parser().parse_args(arguments).dtype, "float32")
+        self.assertEqual(
+            module.build_parser().parse_args([*arguments, "--dtype", "float16"]).dtype,
+            "float16",
+        )
+        with self.assertRaisesRegex(ValueError, "dtype must be"):
+            module.predict_shard("unused", "unused", output="unused", dtype="uint8")
+
     def test_three_images_sequence_cache_ranked_mapping_and_id_outputs(self) -> None:
         module = load_participant_module("predict.py", "proticelli_runner")
         call_log: list[tuple[str, object]] = []
@@ -85,6 +97,7 @@ class ProtiCelliAdapterTests(unittest.TestCase):
                     weights,
                     batch_size=4,
                     inference_steps=50,
+                    dtype="float16",
                     seed=123,
                     output=output,
                 )
@@ -97,6 +110,7 @@ class ProtiCelliAdapterTests(unittest.TestCase):
             rank_hits.assert_called_once()
             self.assertEqual(rank_hits.call_args.kwargs["target_count"], 3)
 
+        self.assertEqual(call_log[0][1]["dtype"], "float16")
         predict_kwargs = call_log[1][1][1]
         images = call_log[1][1][0]
         self.assertEqual(images.shape, (2, 512, 512, 3))

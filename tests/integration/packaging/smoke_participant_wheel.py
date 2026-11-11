@@ -27,15 +27,7 @@ from anvil_dream_participant.submissions.bundle import (
     SubmissionBundle,
 )
 from anvil_dream_participant.challenges.hpa.workflows import parse_participant_workflow
-from anvil_dream_participant.challenges.hpa.benchmarking.aggregate import EvaluationAggregate
-from anvil_dream_participant.challenges.hpa.benchmarking.image_results import (
-    ImageResult,
-    PIXELS_PER_IMAGE,
-)
-from anvil_dream_participant.challenges.hpa.benchmarking.metrics import ComparisonMetrics
-from anvil_dream_participant.challenges.hpa.benchmarking.score import ScoreResult
-from anvil_dream_participant.challenges.hpa.benchmarking import evaluation as benchmark
-from anvil_dream_participant.challenges.hpa.benchmarking import image_results as image_result_contract
+from anvil_dream_participant.challenges.hpa.profile import PROFILE
 
 
 def main(wdl_path: Path) -> None:
@@ -44,8 +36,7 @@ def main(wdl_path: Path) -> None:
     ]
     if modules_found:
         raise AssertionError(
-            "the installed participant environment includes organizer modules: "
-            f"{modules_found}"
+            f"the installed participant environment includes organizer modules: {modules_found}"
         )
     participant_distribution = distribution("anvil-dream-participant")
     _assert_no_forbidden_organizer_helper_files(
@@ -70,18 +61,13 @@ def main(wdl_path: Path) -> None:
     }
     if entry_points != {"anvil-dream-participant": "anvil_dream_participant.cli:main"}:
         raise AssertionError(f"participant wheel exposes unexpected commands: {entry_points}")
-    if (
-        importlib.util.find_spec("anvil_dream_participant.challenges.hpa.benchmarking.tasks")
-        is not None
-    ):
-        raise AssertionError("participant wheel includes organizer grading task commands")
+    if importlib.util.find_spec("anvil_dream_participant.challenges.hpa.benchmarking") is not None:
+        raise AssertionError("participant wheel includes retired evaluation code")
     loaded = sorted(name for name in sys.modules if is_forbidden_import(name))
     if loaded:
         raise AssertionError(f"participant wheel smoke imported organizer-side modules: {loaded}")
-    if not callable(benchmark.benchmark_image_results):
-        raise AssertionError("participant wheel does not expose the benchmark implementation")
-    if hasattr(image_result_contract, "write_image_results"):
-        raise AssertionError("participant wheel exposes the organizer grader's JSONL writer")
+    if hasattr(PROFILE, "benchmark"):
+        raise AssertionError("participant profile exposes an evaluation operation")
 
     workflow = parse_participant_workflow(wdl_path)
     assert workflow.name == "Predict"
@@ -161,55 +147,10 @@ def main(wdl_path: Path) -> None:
             assert manifest["synapse_user_id"] == "123456"
             assert manifest["full_fingerprint"] == bundle.manifest.full_fingerprint
 
-        image_result = ImageResult(
-            sample_id="cell-0",
-            metrics=ComparisonMetrics.from_sums(
-                absolute_error_sum=0.0,
-                squared_error_sum=0.0,
-                dot_product_sum=0.0,
-                prediction_square_sum=0.0,
-                target_square_sum=0.0,
-                maximum_absolute_error=0.0,
-                element_count=PIXELS_PER_IMAGE,
-            ),
-        )
-        image_results = root / "image-results.jsonl"
-        image_results.write_text(
-            json.dumps(image_result.as_dict(), sort_keys=True, separators=(",", ":")) + "\n",
-            encoding="utf-8",
-        )
-        subprocess.run(
-            [
-                sys.executable,
-                "-m",
-                "anvil_dream_participant.cli.benchmark",
-                "--image-results",
-                str(image_results),
-                "--comparison-report",
-                str(root / "comparison-report.json"),
-                "--aggregate",
-                str(root / "evaluation-aggregate.json"),
-                "--output",
-                str(root / "score-result.json"),
-            ],
-            check=True,
-            cwd=root,
-            env=environment,
-        )
-        aggregate = EvaluationAggregate.from_dict(
-            json.loads((root / "evaluation-aggregate.json").read_text(encoding="utf-8"))
-        )
-        score = ScoreResult.from_dict(
-            json.loads((root / "score-result.json").read_text(encoding="utf-8"))
-        )
-        report = json.loads((root / "comparison-report.json").read_text(encoding="utf-8"))
-        assert aggregate.record_count == 1
-        assert aggregate.metrics.mean_absolute_error == 0.0
-        assert report["compared_pixels"] == 512 * 512
-        assert score.score == 1.0
-        assert score.higher_is_better
 
-    print("Installed participant wheel created a submission bundle and ran the benchmark offline.")
+    print(
+        "Installed participant wheel created a submission bundle without evaluation code."
+    )
 
 
 if __name__ == "__main__":

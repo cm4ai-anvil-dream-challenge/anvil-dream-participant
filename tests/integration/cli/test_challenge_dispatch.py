@@ -38,7 +38,9 @@ class ChallengeDispatchTests(unittest.TestCase):
             from anvil_dream_participant.cli import main
             from anvil_dream_participant.cli.root import cli
             from anvil_dream_participant.config import participant_config_for_evaluation
-            from anvil_dream_participant.workflows.wdl import WorkflowContractError
+            from anvil_dream_participant.workflows.wdl import (
+                WorkflowContractError, parse_participant_workflow,
+            )
 
             config = participant_config_for_evaluation("12345")
             assert config["synapse"]["evaluation_id"] == "12345"
@@ -54,10 +56,7 @@ class ChallengeDispatchTests(unittest.TestCase):
             assert challenge_option.default == "anvil_dream_participant.challenges.hpa.profile:PROFILE"
             command_help = CliRunner().invoke(cli, ["submit", "--help"])
             assert command_help.exit_code == 0, command_help.output + repr(command_help.exception)
-            from anvil_dream_participant.cli.benchmark import command as benchmark_command
-
-            benchmark_help = CliRunner().invoke(benchmark_command, ["--help"])
-            assert benchmark_help.exit_code == 0, benchmark_help.output + repr(benchmark_help.exception)
+            assert set(cli.commands) == {"submit", "submit-anvil", "submission-status"}
             try:
                 main(["--help"])
             except SystemExit as error:
@@ -83,6 +82,21 @@ class ChallengeDispatchTests(unittest.TestCase):
             timeout=30,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_short_help_matches_long_help_for_all_submission_commands(self) -> None:
+        runner = CliRunner()
+        for command in ([], ["submit"], ["submit-anvil"], ["submission-status"]):
+            with self.subTest(command=command):
+                short = runner.invoke(cli, [*command, "-h"])
+                long = runner.invoke(cli, [*command, "--help"])
+                self.assertEqual(short.exit_code, 0, short.output)
+                self.assertEqual(short.output, long.output)
+
+    def test_hpa_profile_defaults_to_the_official_submission_queue(self) -> None:
+        from anvil_dream_participant.challenges.hpa.profile import PROFILE
+
+        self.assertEqual(PROFILE.evaluation_id, "9620108")
+        self.assertEqual(PROFILE.queue_name, "CM4AI-AnVIL DREAM Challenge Submissions")
 
     def test_alternate_profile_dispatches_without_importing_hpa(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -325,7 +339,7 @@ class ChallengeDispatchTests(unittest.TestCase):
 
         self.assertEqual(result.exit_code, 0, result.output + repr(result.exception))
         request = submit.call_args.args[0]
-        self.assertEqual(request.profile.evaluation_id, "9620030")
+        self.assertEqual(request.profile.evaluation_id, "9620108")
         self.assertIsNone(request.evaluation_id_override)
 
 

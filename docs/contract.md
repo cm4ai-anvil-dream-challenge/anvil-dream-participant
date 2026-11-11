@@ -1,6 +1,6 @@
 # Participant submission contract
 
-The interface is independent of the model framework. Your container owns the model code, weight format, and prediction command. ProtiCelli is an example adapter, not a required dependency. Other models must implement the same three-image FASTA input and prediction PNG output contract. The current execution policy uses one NVIDIA L4 on `g2-standard-8` for every participant.
+The interface is independent of the model framework. Your container owns the model code, weight format, and prediction command. ProtiCelli is an example adapter, not a required dependency. Other models must implement the same three-image FASTA input and prediction PNG output contract. The current execution policy uses one NVIDIA A100 with 40 GB of GPU memory on `a2-highgpu-1g` for each prediction worker.
 
 Each submission is one deterministic, uncompressed TAR entity in the Synapse Evaluation Queue. It contains canonical `manifest.json`, the WDL at
 `submission/workflow.wdl`, the weights at `submission/weights`, and, when requested, regular files below `other/` in lexicographic relative-path order.
@@ -56,8 +56,7 @@ weights. They are not part of the organizer-facing interface.
 
 The only runtime attribute participants may set is `docker`. The participant CLI and organizer intake reject every other runtime attribute in the submitted
 WDL. The organizer retains that WDL unchanged for audit, then generates an executable copy with resources from `[workflow_policy]`. The reference policy
-sets 8 CPUs, 32 GB of memory, a 75 GB SSD, one NVIDIA L4, zero preemptible attempts by default, zero task retries, `noAddress: false`, and
-`predefinedMachineType: "g2-standard-8"`. The generated copy uses the Docker digest from the submitted WDL.
+sets 12 CPUs, 85 GB of system memory, a 75 GB SSD, one NVIDIA A100 with 40 GB of GPU memory, zero preemptible attempts by default, and zero task retries. The machine type is `a2-highgpu-1g`. The generated copy uses the Docker digest from the submitted WDL.
 
 The task interface is fixed. `Predict` must declare exactly the non-optional `Array[PredictionInput] inputs` and `File weights` inputs, and only the
 non-optional `Array[File] predictions` output. The `PredictionInput` struct must contain exactly `String prediction_id`, `File microtubules_image`,
@@ -107,21 +106,59 @@ Participants cannot set the execution timeout. The organizer sets it on the gene
 The organizer stores the submitted WDL in the private Synapse TAR and stages it in private organizer storage. It embeds the validated `Predict` task in the
 organizer workflow and does not publish the submitted WDL or grant it public read access. The container image must remain publicly pullable by Cromwell.
 
-Supporting files are optional. Local `submit` uses `--other-files DIRECTORY`.
-GCS `submit-anvil` uses `--files GS_PATH [GS_PATH ...]` for individual objects, or adds `--recursive` to include files below each specified directory prefix.
-Individual GCS objects use their filenames; recursive copies preserve paths relative to each prefix. The CLI builds and uploads the submission TAR automatically.
-It includes only the explicit WDL, weights, and selected supporting files. It rejects symlinks, devices, traversal, duplicate archive paths, malformed TAR members, and files over configured limits. The organizer validates every header, digest, and fingerprint while streaming extraction, then stores the original TAR under an immutable, content-addressed organizer path. It also materializes the WDL and weights as separate immutable objects in private organizer storage. Rawls receives the generated `OrganizerEvaluation` workflow and one plan file as its workflow input.
+## Supporting files versus container contents
 
-The organizer creates one deterministic runtime-assets TAR that contains only the optional files. It strips the submission-only `other/` prefix. The generated `Predict` task extracts the TAR into its working directory before it starts the participant command. The submitted participant WDL does not declare another input.
+There are two ways to provide supporting files, such as configuration, vocabulary,
+or prediction scripts. You can use both in the same submission.
 
-For example, this directory:
+**Build files into your container image.** Use your Dockerfile to copy files into
+the image:
 
-```text
-context/
-  config.yaml
-  vocab/tokens.json
+```dockerfile
+COPY predict.py /opt/model/predict.py
+COPY config.yaml /opt/model/config.yaml
 ```
 
-produces `config.yaml` and `vocab/tokens.json` in the working directory. The participant command can use `--config config.yaml` without knowing where Cromwell localized the TAR.
+Your WDL command can then run `python3 /opt/model/predict.py` and pass
+`--config /opt/model/config.yaml`. Changing these files requires rebuilding the
+image and updating its digest in your WDL.
 
-The participant container must provide `tar`. Runtime assets use regular-file mode `0644`, so invoke submitted scripts through their interpreter. The CLI rejects the reserved top-level paths `predictions` and `__dream_runtime_assets.tar`. Extraction also refuses to overwrite an existing working-directory path.
+**Attach files when you submit.** Use `submit-anvil --files` to include files from
+GCS without rebuilding the image:
+
+```sh
+anvil-dream-participant submit-anvil \
+  --wdl gs://my-bucket/workflow.wdl \
+  --weights gs://my-bucket/weights.pt \
+  --files gs://my-bucket/config.yaml \
+  --name my-model-v1
+```
+
+The attached `config.yaml` is available in the container's working directory
+before your prediction command starts. A script built into the image can read it
+with `open("config.yaml")`, or receive its path from the WDL command:
+
+```wdl
+command <<<
+  python3 /opt/model/predict.py \
+    --inputs-manifest "~{write_json(inputs)}" \
+    --weights "~{weights}" \
+    --config config.yaml \
+    --output predictions
+>>>
+```
+
+These attached files are available when the container runs, not while the
+Dockerfile builds the image. Read them relative to the task working directory,
+not relative to `/opt/model` or your script's location.
+
+For local submissions, use `submit --other-files ./context`. Files inside that
+folder appear directly in the working directory: `context/config.yaml` becomes
+`config.yaml`. With GCS, individual `--files` objects use their filenames;
+`--files gs://my-bucket/context/ --recursive` preserves paths beneath `context/`.
+See the [quickstart examples](quickstart.md#supporting-files).
+
+Keep libraries and runtime tools, including `tar`, in the container image. If you
+attach a script, invoke it through its interpreter, such as `python3 predict.py`.
+Always supply the main weights through `--weights`. Supporting files require no
+additional WDL inputs.

@@ -1,36 +1,42 @@
 # Challenge and participant documentation
 
-These pages were refreshed from the [Synapse staging site](https://www.synapse.org/Synapse:syn74338981/wiki/639954) on October 19, 2026.
-The mapping was rebuilt from all 18 pages in the live wiki hierarchy, including current titles and parents.
-This import did not change Synapse.
+These pages were refreshed from Synapse on November 11, 2026, using a local
+three-way merge with the previous import. Production is the source for most
+pages. The Data page includes newer edits from staging. This refresh did not
+change Synapse.
 
-Source prose and code examples are retained. Links and Synapse widgets are adapted for local Markdown.
-The staging guides still contain some older technical details. The differences from the current package are recorded in [synapse-pages.json](synapse-pages.json).
+Local updates to the 40 GB A100 hardware, supporting-file instructions, submission
+interface, and separate evaluation package are preserved. The production
+Evaluation page currently repeats the retired benchmark guide, so the local
+scientific evaluation description is retained.
 
-The manifest records page IDs, parents, timestamps, source and document checksums, and image attachment checksums.
-Dynamic registration, participant lists, and leaderboard results remain on Synapse.
+Links and Synapse widgets are adapted for local Markdown. Registration,
+participant lists, and leaderboard results remain on Synapse. The
+[snapshot metadata](synapse-pages.json) retains the original import records;
+`last_pull` records the latest sources, checksums, and merge decisions. All four
+referenced image attachments were checked against Synapse and are unchanged.
 
 ## Pages
 
 | Page | Parent | Synapse source |
 | --- | --- | --- |
-| [Challenge overview](overview.md) | Root | [Wiki 639954](https://www.synapse.org/Synapse:syn74338981/wiki/639954) |
-| [Challenge Rules](challenge-rules.md) | Challenge overview | [Wiki 642246](https://www.synapse.org/Synapse:syn74338981/wiki/642246) |
-| [How to participate](how-to-participate.md) | Challenge overview | [Wiki 643857](https://www.synapse.org/Synapse:syn74338981/wiki/643857) |
-| [Motivation & Background](motivation-and-background.md) | Challenge overview | [Wiki 640956](https://www.synapse.org/Synapse:syn74338981/wiki/640956) |
-| [News & Timeline](news-and-timeline.md) | Challenge overview | [Wiki 640955](https://www.synapse.org/Synapse:syn74338981/wiki/640955) |
-| [Results](results.md) | Challenge overview | [Wiki 642816](https://www.synapse.org/Synapse:syn74338981/wiki/642816) |
-| [The Challenge](challenge.md) | Challenge overview | [Wiki 642240](https://www.synapse.org/Synapse:syn74338981/wiki/642240) |
-| [AnVIL Compute](anvil-compute.md) | The Challenge | [Wiki 642239](https://www.synapse.org/Synapse:syn74338981/wiki/642239) |
+| [Challenge overview](overview.md) | Root | [Wiki 643745](https://www.synapse.org/Synapse:syn77349038/wiki/643745) |
+| [Challenge Rules](challenge-rules.md) | Challenge overview | [Wiki 643936](https://www.synapse.org/Synapse:syn77349038/wiki/643936) |
+| [How to participate](how-to-participate.md) | Challenge overview | [Wiki 643937](https://www.synapse.org/Synapse:syn77349038/wiki/643937) |
+| [Motivation & Background](motivation-and-background.md) | Challenge overview | [Wiki 643938](https://www.synapse.org/Synapse:syn77349038/wiki/643938) |
+| [News & Timeline](news-and-timeline.md) | Challenge overview | [Wiki 643939](https://www.synapse.org/Synapse:syn77349038/wiki/643939) |
+| [Results](results.md) | Challenge overview | [Wiki 643940](https://www.synapse.org/Synapse:syn77349038/wiki/643940) |
+| [The Challenge](challenge.md) | Challenge overview | [Wiki 643941](https://www.synapse.org/Synapse:syn77349038/wiki/643941) |
+| [AnVIL Compute](anvil-compute.md) | The Challenge | [Wiki 643942](https://www.synapse.org/Synapse:syn77349038/wiki/643942) |
 | [Data](data.md) | The Challenge | [Wiki 642238](https://www.synapse.org/Synapse:syn74338981/wiki/642238) |
-| [Evaluation](evaluation.md) | The Challenge | [Wiki 642243](https://www.synapse.org/Synapse:syn74338981/wiki/642243) |
-| [Reading List](reading-list.md) | The Challenge | [Wiki 643278](https://www.synapse.org/Synapse:syn74338981/wiki/643278) |
-| [Submission Format](contract.md) | The Challenge | [Wiki 643828](https://www.synapse.org/Synapse:syn74338981/wiki/643828) |
-| [Participants & Teams](participants-and-teams.md) | Results | [Wiki 642245](https://www.synapse.org/Synapse:syn74338981/wiki/642245) |
-| [Command Line Tool](cli.md) | How to participate | [Wiki 643841](https://www.synapse.org/Synapse:syn74338981/wiki/643841) |
-| [Container Images](container-images.md) | How to participate | [Wiki 643840](https://www.synapse.org/Synapse:syn74338981/wiki/643840) |
-| [Evaluation](benchmark.md) | How to participate | [Wiki 643842](https://www.synapse.org/Synapse:syn74338981/wiki/643842) |
-| [ProtiCelli Example](proticelli.md) | How to participate | [Wiki 643843](https://www.synapse.org/Synapse:syn74338981/wiki/643843) |
-| [Quickstart](quickstart.md) | How to participate | [Wiki 643829](https://www.synapse.org/Synapse:syn74338981/wiki/643829) |
+| [Evaluation](evaluation.md) | The Challenge | [Wiki 643944](https://www.synapse.org/Synapse:syn77349038/wiki/643944) |
+| [Reading List](reading-list.md) | The Challenge | [Wiki 643945](https://www.synapse.org/Synapse:syn77349038/wiki/643945) |
+| [Submission Format](contract.md) | The Challenge | [Wiki 643946](https://www.synapse.org/Synapse:syn77349038/wiki/643946) |
+| [Participants & Teams](participants-and-teams.md) | Results | [Wiki 643947](https://www.synapse.org/Synapse:syn77349038/wiki/643947) |
+| [Command Line Tool](cli.md) | How to participate | [Wiki 643948](https://www.synapse.org/Synapse:syn77349038/wiki/643948) |
+| [Container Images](container-images.md) | How to participate | [Wiki 643949](https://www.synapse.org/Synapse:syn77349038/wiki/643949) |
+| [Evaluation](benchmark.md) | How to participate | [Wiki 643950](https://www.synapse.org/Synapse:syn77349038/wiki/643950) |
+| [ProtiCelli Example](proticelli.md) | How to participate | [Wiki 643951](https://www.synapse.org/Synapse:syn77349038/wiki/643951) |
+| [Quickstart](quickstart.md) | How to participate | [Wiki 643952](https://www.synapse.org/Synapse:syn77349038/wiki/643952) |
 
 [Participant package release instructions](participant-releases.md) are maintained in this repository and were not imported from Synapse.

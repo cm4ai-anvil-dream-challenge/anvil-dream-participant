@@ -33,7 +33,6 @@ PARTICIPANT_GUIDES = frozenset(
         "docs/reading-list.md",
         "docs/results.md",
         "docs/participant-releases.md",
-        "challenges/hpa/benchmarking/README.md",
         "challenges/hpa/examples/proticelli/README.md",
     }
 )
@@ -129,6 +128,12 @@ def _assert_architecture_boundaries(modules: list[tuple[str, bytes]]) -> None:
         if name.startswith(CORE_PACKAGE_PREFIX) and not name.startswith(
             (CLI_PACKAGE_PREFIX, CHALLENGE_PACKAGE_PREFIX)
         ):
+            if name == "anvil_dream_participant/workflows/wdl.py":
+                # The published validator entrypoint delegates lazily to HPA.
+                challenge_imports -= {
+                    "anvil_dream_participant.challenges.hpa.workflows",
+                    "anvil_dream_participant.challenges.hpa.workflows.parse_participant_workflow",
+                }
             violations = cli_imports | challenge_imports | framework_imports
             assert not violations, (
                 f"core module {name} imports CLI or HPA code: {sorted(violations)}"
@@ -255,17 +260,17 @@ def _assert_public_modules(modules: set[str], artifact: str) -> None:
         "anvil_dream_participant/cli/submit.py",
         "anvil_dream_participant/cli/submit_anvil.py",
         "anvil_dream_participant/cli/submission_status.py",
-        "anvil_dream_participant/cli/benchmark.py",
         "anvil_dream_participant/challenges/__init__.py",
         "anvil_dream_participant/challenges/hpa/__init__.py",
         "anvil_dream_participant/challenges/hpa/profile.py",
         "anvil_dream_participant/challenges/hpa/workflows.py",
-        "anvil_dream_participant/challenges/hpa/benchmarking/evaluation.py",
-        "anvil_dream_participant/challenges/hpa/benchmarking/image_results.py",
     }
     _assert_required_modules(modules, required, artifact)
-    assert not any(name.startswith("anvil_dream_participant/benchmarking/") for name in modules), (
-        f"{artifact} has benchmark modules outside the HPA challenge package"
+    assert not any("benchmarking" in PurePosixPath(name).parts for name in modules), (
+        f"{artifact} includes retired evaluation modules"
+    )
+    assert "anvil_dream_participant/cli/benchmark.py" not in modules, (
+        f"{artifact} exposes the retired benchmark command"
     )
 
 
@@ -305,9 +310,6 @@ def verify_wheel(path: str) -> tuple[int, list[str]]:
         }
         assert not forbidden_modules, (
             f"participant wheel includes organizer grading/gather code: {sorted(forbidden_modules)}"
-        )
-        assert "anvil_dream_participant/challenges/hpa/benchmarking/_evidence.py" not in names, (
-            "participant wheel includes organizer provenance helpers"
         )
 
         metadata_name = next(name for name in names if name.endswith(".dist-info/METADATA"))

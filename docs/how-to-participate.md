@@ -18,12 +18,14 @@ In addition to challenge registration, sign in to [Terra](https://app.terra.bio/
 > **👥 Working in a Team?**
 > To enable team submissions, you must first register your group for the challenge using the button below.
 >
-> [Register your team on Synapse](https://www.synapse.org/Synapse:syn74338981/wiki/643857)
+> [Register your team on Synapse](https://www.synapse.org/Synapse:syn77349038/wiki/643937)
 >
 > You may also request to join an existing team that is already registered for this challenge. Visit the [Participants & Teams](participants-and-teams.md) page to view all registered teams.
 </details>
 
 ## 2. Make a Submission
+
+Our goal is to collect running models and test them against a held out dataset. You are responsible for the training of the model, and packaging the model weights and any reference files that might be are need to do predictions. The submission to the challenge is a prediction runner, it should be able to take the weights file and do predictions on an array of provided inputs.
 
 A submission to this challenge should include:
 
@@ -45,7 +47,7 @@ Follow the [Quickstart](quickstart.md) for a full walkthrough, including:
 
 ## 3. Review Your Model's Performance
 
-See how your model performs on the [Results](results.md) page. The [Evaluation](benchmark.md) page explains how scores are calculated.
+See how your model performs on the [Results](results.md) page. The [Evaluation](evaluation.md) page explains how scores are calculated.
 
 ---
 

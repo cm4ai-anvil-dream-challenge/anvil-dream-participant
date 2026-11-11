@@ -5,15 +5,27 @@ AnVIL is NHGRI's Genomic Data Science Analysis, Visualization, and Informatics L
 ### [Getting started on AnVIL computing](https://anvilproject.org/learn/get-started)
 
 
-# Evaluation Target Environment
-All submissions will be evaluated on a standardized Google Cloud Platform (GCP) g2-standard-8 instance (or equivalent). To ensure fairness and consistent benchmarking, your code must execute within the constraints of this single-node environment.
-### Hardware Specifications
-- Compute (vCPU): 8 vCPUs (Intel Xeon / Cascade Lake)
-- System Memory: 32 GB RAM
-- Accelerator (GPU): 1 × NVIDIA L4 GPU (24 GB GDDR6 VRAM, Ada Lovelace architecture)
-- Network Bandwidth: Up to 16 Gbps
-### Deployment & Optimization Guidelines
-- VRAM Allocation: Ensure your models and batch sizes are optimized for a 24 GB VRAM ceiling. Exceeding this will result in Out-of-Memory (OOM) errors.
-CPU Multi-threading: Workloads should be designed to leverage up to 8 vCPUs. Ensure your data pipelines, preprocessing, and post-processing do not bottleneck the GPU.
-- System RAM: Keep your memory footprint safely under 32 GB to avoid system thrashing or process termination by the OOM killer.
-- Precision: The NVIDIA L4 architecture features fourth-generation Tensor Cores. We highly encourage utilizing FP16 / BF16 mixed-precision or INT8 quantization to maximize throughput.
+# Evaluation target environment
+
+Organizer testing uses a standardized Google Cloud environment with one NVIDIA
+A100 with 40 GB of GPU memory per prediction worker. Your model must run within
+one worker's resources. The organizer controls parallel execution across workers.
+
+## Hardware specifications
+
+- Machine type: `a2-highgpu-1g`
+- Compute: 12 vCPUs
+- System memory: 85 GB RAM
+- GPU: one NVIDIA A100 with 40 GB of GPU memory
+- Task disk: 75 GB SSD
+
+## Deployment and optimization guidelines
+
+- Keep model and batch allocations within the 40 GB GPU memory limit. Leave room for framework and temporary allocations.
+- Use the available CPUs for data loading, preprocessing, and postprocessing to keep the GPU busy.
+- Keep system memory use below the 85 GB limit.
+- Use mixed precision if your model supports it. Verify that prediction quality remains acceptable.
+
+The organizer sets execution resources and timeouts. Your submitted WDL must
+specify only the container image in its runtime block. See the
+[submission contract](contract.md) for the fixed WDL interface.

@@ -28,6 +28,7 @@ We evaluate submissions on a hidden test set comprising images of 50,000 cells f
 * Kyle Ellrott, Oregon Health & Science University
 * Michael Schatz, Johns Hopkins University
 * Shurjo Sen, NHGRI, NIH
+* George Papanicolaou, NIH
 * Laura Heiser, Ohregon Health & Science University
 * Gustavo Stolovitzky, NYU Langone Health
 

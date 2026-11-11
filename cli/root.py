@@ -5,7 +5,6 @@ from __future__ import annotations
 import click
 
 from . import DEFAULT_CHALLENGE_REFERENCE
-from .benchmark import command as benchmark_command
 from .submission_status import command as submission_status_command
 from .submit import command as submit_command
 from .submit_anvil import command as submit_anvil_command
@@ -21,7 +20,11 @@ class ParticipantGroup(click.Group):
         return super().get_command(ctx, cmd_name)
 
 
-@click.group(cls=ParticipantGroup, invoke_without_command=True)
+@click.group(
+    cls=ParticipantGroup,
+    invoke_without_command=True,
+    context_settings={"help_option_names": ["-h", "--help"]},
+)
 @click.option(
     "--challenge",
     "challenge_reference",
@@ -41,4 +44,3 @@ def cli(ctx: click.Context, challenge_reference: str) -> None:
 cli.add_command(submit_command)
 cli.add_command(submit_anvil_command)
 cli.add_command(submission_status_command)
-cli.add_command(benchmark_command)

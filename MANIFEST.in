@@ -8,7 +8,6 @@ include scripts/release.py
 recursive-include participant *.py
 recursive-include cli *.py
 recursive-include challenges *.py
-recursive-include challenges/hpa/benchmarking *.md
 recursive-include challenges/hpa/examples/proticelli *.py *.json *.wdl *.txt *.sh Dockerfile README.md
 recursive-include docs *.md *.json *.png
 recursive-include tests *.py

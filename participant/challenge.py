@@ -5,19 +5,9 @@ from __future__ import annotations
 import importlib
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Protocol
+from typing import Callable
 
 
-class BenchmarkOperation(Protocol):
-    def __call__(
-        self,
-        results: Path,
-        *,
-        dataset_id: str,
-        comparison_report_path: Path,
-        aggregate_path: Path,
-        score_result_path: Path,
-    ) -> object: ...
 
 
 @dataclass(frozen=True)
@@ -26,7 +16,6 @@ class ChallengeProfile:
     evaluation_id: str
     queue_name: str
     validate_workflow: Callable[[Path], None]
-    benchmark: BenchmarkOperation | None = None
 
 
 def load_challenge(reference: str) -> ChallengeProfile:
@@ -64,6 +53,4 @@ def load_challenge(reference: str) -> ChallengeProfile:
         raise ValueError("challenge profile queue_name must not be empty")
     if not callable(profile.validate_workflow):
         raise ValueError("challenge profile validate_workflow must be callable")
-    if profile.benchmark is not None and not callable(profile.benchmark):
-        raise ValueError("challenge profile benchmark must be callable or None")
     return profile

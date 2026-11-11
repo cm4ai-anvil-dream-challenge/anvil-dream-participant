@@ -98,7 +98,7 @@ Your model can use any framework that implements the interface. ProtiCelli is on
 
 ### Environment Constraints
 
-One NVIDIA L4 GPU (`g2-standard-8`) with 8 CPUs, 32 GB memory, and 75 GB SSD; with no task retries and one timeout set by the organizers. See the [submission contract](contract.md) for more details.
+Each prediction worker uses one NVIDIA A100 with 40 GB of GPU memory (`a2-highgpu-1g`), 12 CPUs, 85 GB of system memory, and a 75 GB SSD. The organizers set one execution timeout and allow no task retries. See the [submission contract](contract.md) for more details.
 
 ### Model input files
 
@@ -128,7 +128,7 @@ Create a `workflow.wdl` that defines your execution pipeline. To ensure compatib
 
 **Container Implementation**
 
-All model code, dependencies, and execution scripts must be baked directly into your container image. The entrypoint script (`predict.py`) and command-line flags shown in the example below are customizable templates for your container. Adjust script names, flags, and model hyperparameters (such as batch size and random seeds) inside the WDL `command` block or model code as needed.
+Your container image must provide the runtime, dependencies, and tools your command uses, including `tar`. Model code can be baked into the image or included as supporting files. See [supporting files versus container contents](contract.md#supporting-files-versus-container-contents) for examples. The entrypoint script (`predict.py`) and command-line flags shown in the example below are customizable templates for your container. Adjust script names, flags, and model hyperparameters (such as batch size and random seeds) inside the WDL `command` block or model code as needed.
 
 <details>
 <summary>> Example WDL template</summary>
@@ -280,7 +280,7 @@ To use a different bucket, set `SUBMISSION_BUCKET` to its `gs://` URL and make s
 
 ### Supporting files
 
-Supporting files are optional, and they land in the prediction task's working directory. The example folder below produces `config.yaml` and `vocab/tokens.json`, not `context/config.yaml`:
+Supporting files are optional. Use `--other-files DIRECTORY` with local `submit`, or `--files GS_PATH [GS_PATH ...]` with `submit-anvil`. Put a space after `--files`; the attached form `--files=gs://...` is not supported. These files land in the prediction task's working directory. The example folder below produces `config.yaml` and `vocab/tokens.json`, not `context/config.yaml`:
 
 ```text
 submission/
@@ -291,6 +291,7 @@ submission/
     vocab/tokens.json
 ```
 
+For image paths, bundled scripts, and GCS path mapping, see [supporting files versus container contents](contract.md#supporting-files-versus-container-contents).
 
 ## 6. Check submission status
 
@@ -302,8 +303,8 @@ anvil-dream-participant submission-status --submission-id SUBMISSION_ID
 
 A status of `RECEIVED` means Synapse has received your submission into the queue. Prediction and grading may still be pending, so rerun this command later for updates.
 
-> #### **Optional: run the public benchmark**
-> The package includes the benchmark organizers use. It runs on an already merged `image-results.jsonl` file, not prediction PNGs, and cannot recreate official metrics on its own. See the [benchmark guide](benchmark.md) for the command and scoring formula.
+> #### **HPA evaluation**
+> Use the separate [cm4ai-evaluate package](https://github.com/cm4ai-anvil-dream-challenge/cm4ai-evaluate) for local diagnostic metrics on your own images. See the [local evaluation guide](benchmark.md). Official challenge evaluation runs in the organizer environment.
 
 ---
 
