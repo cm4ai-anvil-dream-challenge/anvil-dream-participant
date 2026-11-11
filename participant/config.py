@@ -51,20 +51,28 @@ def require_no_placeholders(
         )
 
 
+PARTICIPANT_EVALUATION_ID = "9620108"
+PARTICIPANT_QUEUE_NAME = "CM4AI-AnVIL DREAM Challenge Submissions"
+
+
 DEFAULT_TERRA_SAM_URL = "https://sam.dsde-prod.broadinstitute.org"
 
 ParticipantConfig = dict[str, dict[str, object]]
 
 
 def participant_config_for_evaluation(
-    evaluation_id: str,
+    evaluation_id: str = PARTICIPANT_EVALUATION_ID,
     *,
     queue_name: str | None = None,
 ) -> ParticipantConfig:
     """Route a participant submission to the specified Synapse Evaluation."""
     return {
         "synapse": {
-            "queue_name": queue_name or f"Synapse Evaluation {evaluation_id}",
+            "queue_name": queue_name or (
+                PARTICIPANT_QUEUE_NAME
+                if evaluation_id == PARTICIPANT_EVALUATION_ID
+                else f"Synapse Evaluation {evaluation_id}"
+            ),
             "submission_parent_id": None,
             "evaluation_id": evaluation_id,
         },

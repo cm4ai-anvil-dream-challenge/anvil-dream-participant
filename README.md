@@ -9,6 +9,14 @@ from the parent repository.
 [Online participant documentation](https://www.synapse.org/Synapse:syn74338981/wiki/643841)
 is available without GitHub repository access.
 
+## Evaluate your model locally
+
+Use the official [cm4ai-evaluate repository](https://github.com/cm4ai-anvil-dream-challenge/cm4ai-evaluate)
+to evaluate your model's predicted images against your own ground-truth images.
+It provides the local evaluation tools and usage instructions. See also the
+[local evaluation guide](docs/benchmark.md). This participant package handles
+model submission and submission status.
+
 ## Participant documentation
 
 [Documentation index](docs/README.md) includes the challenge and participant pages
@@ -79,7 +87,7 @@ not a dependency.
 The public module can validate a participant WDL without importing organizer code:
 
 ```python
-from anvil_dream_participant.challenges.hpa.workflows import parse_participant_workflow
+from anvil_dream_participant.workflows.wdl import parse_participant_workflow
 
 workflow = parse_participant_workflow("participant.wdl")
 ```
@@ -89,13 +97,3 @@ The default profile is HPA. Set the root `--challenge MODULE:ATTRIBUTE` option t
 published `ChallengeProfile`. An explicit `--evaluation-id` takes precedence over that profile's
 evaluation. Java is not required. For an optional independent check with Cromwell WOMtool, see the
 [participant quickstart](docs/quickstart.md).
-
-## Evaluate HPA predictions
-
-Local evaluation is provided by the separate
-[cm4ai-evaluate package](https://github.com/cm4ai-anvil-dream-challenge/cm4ai-evaluate).
-It compares predicted protein images with your own ground-truth images and reports
-raw diagnostic metrics. See the [local evaluation guide](docs/benchmark.md).
-
-The participant package submits models and checks submission status. Official challenge
-evaluation runs on held-out data in the organizer environment.

@@ -19,21 +19,21 @@ ROOT = Path(__file__).resolve().parents[3]
 
 
 class ChallengeDispatchTests(unittest.TestCase):
-    def test_help_and_generic_core_imports_do_not_load_hpa(self) -> None:
+    def test_help_and_generic_core_imports_do_not_load_default_profile(self) -> None:
         script = textwrap.dedent(
             """
             import importlib.abc
             import sys
 
-            class HpaBlocker(importlib.abc.MetaPathFinder):
+            class DefaultProfileBlocker(importlib.abc.MetaPathFinder):
                 def find_spec(self, fullname, path=None, target=None):
-                    if fullname == "anvil_dream_participant.challenges.hpa" or fullname.startswith(
-                        "anvil_dream_participant.challenges.hpa."
+                    if fullname == "anvil_dream_participant.profile" or fullname.startswith(
+                        "anvil_dream_participant.profile."
                     ):
-                        raise AssertionError(f"unexpected HPA import: {fullname}")
+                        raise AssertionError(f"unexpected default profile import: {fullname}")
                     return None
 
-            sys.meta_path.insert(0, HpaBlocker())
+            sys.meta_path.insert(0, DefaultProfileBlocker())
             from click.testing import CliRunner
             from anvil_dream_participant.cli import main
             from anvil_dream_participant.cli.root import cli
@@ -53,7 +53,7 @@ class ChallengeDispatchTests(unittest.TestCase):
             challenge_option = next(
                 parameter for parameter in cli.params if parameter.name == "challenge_reference"
             )
-            assert challenge_option.default == "anvil_dream_participant.challenges.hpa.profile:PROFILE"
+            assert challenge_option.default == "anvil_dream_participant.profile:PROFILE"
             command_help = CliRunner().invoke(cli, ["submit", "--help"])
             assert command_help.exit_code == 0, command_help.output + repr(command_help.exception)
             assert set(cli.commands) == {"submit", "submit-anvil", "submission-status"}
@@ -64,8 +64,8 @@ class ChallengeDispatchTests(unittest.TestCase):
             else:
                 raise AssertionError("public CLI help did not exit")
             assert not any(
-                name == "anvil_dream_participant.challenges.hpa"
-                or name.startswith("anvil_dream_participant.challenges.hpa.")
+                name == "anvil_dream_participant.profile"
+                or name.startswith("anvil_dream_participant.profile.")
                 for name in sys.modules
             )
             """
@@ -83,6 +83,28 @@ class ChallengeDispatchTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_python_config_defaults_to_the_official_queue(self) -> None:
+        from anvil_dream_participant.config import participant_config_for_evaluation
+
+        config = participant_config_for_evaluation()
+        self.assertEqual(config["synapse"]["evaluation_id"], "9620108")
+        self.assertEqual(config["synapse"]["queue_name"], "CM4AI-AnVIL DREAM Challenge Submissions")
+        self.assertEqual(participant_config_for_evaluation("123")["synapse"]["queue_name"], "Synapse Evaluation 123")
+
+    def test_published_cli_runner_preserves_help_and_program_name(self) -> None:
+        from contextlib import redirect_stdout
+        from io import StringIO
+        from anvil_dream_participant.cli.participant import run
+
+        output = StringIO()
+        with redirect_stdout(output):
+            self.assertEqual(run(["-h"], prog="custom-participant"), 0)
+        self.assertIn("Usage: custom-participant", output.getvalue())
+        self.assertIn("submit-anvil", output.getvalue())
+        with self.assertRaises(SystemExit) as error:
+            run(["unknown-command"])
+        self.assertEqual(error.exception.code, 2)
+
     def test_short_help_matches_long_help_for_all_submission_commands(self) -> None:
         runner = CliRunner()
         for command in ([], ["submit"], ["submit-anvil"], ["submission-status"]):
@@ -93,12 +115,12 @@ class ChallengeDispatchTests(unittest.TestCase):
                 self.assertEqual(short.output, long.output)
 
     def test_hpa_profile_defaults_to_the_official_submission_queue(self) -> None:
-        from anvil_dream_participant.challenges.hpa.profile import PROFILE
+        from anvil_dream_participant.profile import PROFILE
 
         self.assertEqual(PROFILE.evaluation_id, "9620108")
         self.assertEqual(PROFILE.queue_name, "CM4AI-AnVIL DREAM Challenge Submissions")
 
-    def test_alternate_profile_dispatches_without_importing_hpa(self) -> None:
+    def test_alternate_profile_dispatches_without_importing_default_profile(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             fixture = Path(directory) / "fixture_challenge.py"
             fixture.write_text(
@@ -126,15 +148,15 @@ class ChallengeDispatchTests(unittest.TestCase):
                 from pathlib import Path
                 from unittest.mock import patch
 
-                class HpaBlocker(importlib.abc.MetaPathFinder):
+                class DefaultProfileBlocker(importlib.abc.MetaPathFinder):
                     def find_spec(self, fullname, path=None, target=None):
-                        if fullname == "anvil_dream_participant.challenges.hpa" or fullname.startswith(
-                            "anvil_dream_participant.challenges.hpa."
+                        if fullname == "anvil_dream_participant.profile" or fullname.startswith(
+                            "anvil_dream_participant.profile."
                         ):
-                            raise AssertionError(f"unexpected HPA import: {fullname}")
+                            raise AssertionError(f"unexpected default profile import: {fullname}")
                         return None
 
-                sys.meta_path.insert(0, HpaBlocker())
+                sys.meta_path.insert(0, DefaultProfileBlocker())
                 sys.path.insert(0, sys.argv[1])
                 from click.testing import CliRunner
                 from anvil_dream_participant.cli.root import cli
@@ -159,8 +181,8 @@ class ChallengeDispatchTests(unittest.TestCase):
                     assert request.evaluation_id_override == "34567"
 
                 assert not any(
-                    name == "anvil_dream_participant.challenges.hpa"
-                    or name.startswith("anvil_dream_participant.challenges.hpa.")
+                    name == "anvil_dream_participant.profile"
+                    or name.startswith("anvil_dream_participant.profile.")
                     for name in sys.modules
                 )
                 """
@@ -183,7 +205,7 @@ class ChallengeDispatchTests(unittest.TestCase):
             cli,
             [
                 "--challenge",
-                "anvil_dream_participant.challenges.hpa.profile:MISSING",
+                "anvil_dream_participant.profile:MISSING",
                 "submit",
                 "--wdl",
                 "workflow.wdl",

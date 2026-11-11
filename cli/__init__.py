@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 
-DEFAULT_CHALLENGE_REFERENCE = "anvil_dream_participant.challenges.hpa.profile:PROFILE"
+DEFAULT_CHALLENGE_REFERENCE = "anvil_dream_participant.profile:PROFILE"
 
 
 def load_profile(ctx):
@@ -28,14 +28,14 @@ def load_profile(ctx):
         raise click.BadParameter(str(error), param_hint="--challenge") from error
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(argv: list[str] | None = None, *, prog: str | None = None) -> int:
     """Run the participant CLI without importing it on library import."""
     from ..progress import close_progress
     from ..integrations.terra import TerraApiError
     from .root import cli
 
     try:
-        cli.main(args=argv, prog_name="anvil-dream-participant", standalone_mode=True)
+        cli.main(args=argv, prog_name=prog or "anvil-dream-participant", standalone_mode=True)
     except SystemExit as error:
         close_progress(failed=error.code not in (None, 0))
         raise

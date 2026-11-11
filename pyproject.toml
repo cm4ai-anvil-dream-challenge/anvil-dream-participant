@@ -51,10 +51,8 @@ include-package-data = false
 packages = [
     "anvil_dream_participant",
     "anvil_dream_participant.cli",
-    "anvil_dream_participant.challenges",
-    "anvil_dream_participant.challenges.hpa",
-    "anvil_dream_participant.challenges.hpa.examples",
-    "anvil_dream_participant.challenges.hpa.examples.proticelli",
+    "anvil_dream_participant.examples",
+    "anvil_dream_participant.examples.proticelli",
     "anvil_dream_participant.docs",
     "anvil_dream_participant.integrations",
     "anvil_dream_participant.submissions",
@@ -64,17 +62,16 @@ packages = [
 [tool.setuptools.package-dir]
 anvil_dream_participant = "participant"
 "anvil_dream_participant.cli" = "cli"
-"anvil_dream_participant.challenges" = "challenges"
-"anvil_dream_participant.challenges.hpa" = "challenges/hpa"
+"anvil_dream_participant.examples" = "examples"
 "anvil_dream_participant.docs" = "docs"
 
 [tool.setuptools.package-data]
 "anvil_dream_participant.docs" = ["*.md", "*.json", "assets/*.png"]
-"anvil_dream_participant.challenges.hpa" = [
-    "examples/proticelli/*.py", "examples/proticelli/*.json",
-    "examples/proticelli/*.wdl", "examples/proticelli/*.txt",
-    "examples/proticelli/Dockerfile", "examples/proticelli/README.md",
-    "examples/proticelli/scripts/*.py", "examples/proticelli/scripts/*.sh",
+"anvil_dream_participant.examples.proticelli" = [
+    "*.py", "*.json",
+    "*.wdl", "*.txt",
+    "Dockerfile", "README.md",
+    "scripts/*.py", "scripts/*.sh",
 ]
 
 [tool.ruff]

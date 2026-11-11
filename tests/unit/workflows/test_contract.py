@@ -6,12 +6,12 @@ import unittest
 from pathlib import Path
 
 
-from anvil_dream_participant.challenges.hpa.workflows import parse_participant_workflow
+from anvil_dream_participant.workflows.wdl import parse_participant_workflow
 from anvil_dream_participant.workflows.wdl import WorkflowContractError, validate_workflow_images
 
 
 ROOT = Path(__file__).resolve().parents[3]
-EXAMPLE = ROOT / "challenges/hpa/examples/proticelli/participant.wdl"
+EXAMPLE = ROOT / "examples/proticelli/participant.wdl"
 
 
 class WorkflowContractTests(unittest.TestCase):

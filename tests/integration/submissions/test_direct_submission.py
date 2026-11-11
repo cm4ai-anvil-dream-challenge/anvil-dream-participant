@@ -252,10 +252,10 @@ class DirectSubmissionTests(unittest.TestCase):
         self.assertEqual(config["queue_name"], "Synapse Evaluation 2")
 
     def test_profile_validation_fails_before_cloud_access(self) -> None:
-        from anvil_dream_participant.challenges.hpa.profile import PROFILE
+        from anvil_dream_participant.profile import PROFILE
 
         example = Path(__file__).resolve().parents[3] / (
-            "challenges/hpa/examples/proticelli/participant.wdl"
+            "examples/proticelli/participant.wdl"
         )
         source = example.read_text(encoding="utf-8").replace(
             "  runtime {",

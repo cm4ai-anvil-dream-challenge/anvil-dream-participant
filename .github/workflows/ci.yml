@@ -81,7 +81,7 @@ jobs:
           "$WHEEL_BIN/anvil-dream-participant" submit-anvil --help
           "$WHEEL_BIN/anvil-dream-participant" submission-status --help
           "$WHEEL_PY" "$GITHUB_WORKSPACE/tests/integration/packaging/smoke_participant_wheel.py" \
-            "$GITHUB_WORKSPACE/challenges/hpa/examples/proticelli/participant.wdl"
+            "$GITHUB_WORKSPACE/examples/proticelli/participant.wdl"
           if "$WHEEL_BIN/anvil-dream-participant" organizer \
             > "$RUNNER_TEMP/organizer-rejection.txt" 2>&1; then
             echo "participant CLI accepted organizer commands" >&2
@@ -101,4 +101,4 @@ jobs:
           "$SDIST_BIN/anvil-dream-participant" --help
           "$SDIST_BIN/anvil-dream-participant" submit --help
           "$SDIST_PY" -B "$GITHUB_WORKSPACE/tests/integration/packaging/smoke_participant_wheel.py" \
-            "$GITHUB_WORKSPACE/challenges/hpa/examples/proticelli/participant.wdl"
+            "$GITHUB_WORKSPACE/examples/proticelli/participant.wdl"

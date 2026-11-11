@@ -66,7 +66,7 @@ choose your own paths:
 mkdir -p "$PWD/model-assets"
 unzip -q "$PWD/weights-handoff.zip" \
   'checkpoint/unet/*' 'checkpoint/unet_ema/*' 'vae/*' -d "$PWD/model-assets"
-bash challenges/hpa/examples/proticelli/scripts/build_weights.sh \
+bash examples/proticelli/scripts/build_weights.sh \
   "$PWD/model-assets" \
   "$PWD/rebuilt-weights.zip" \
   "$PWD/uniprot_sprot_human.dat.gz"
@@ -96,7 +96,7 @@ The checked-in WDL pins the published `quay.io/anvil_dream/blast-proticelli-exam
 image at digest `sha256:59c9a92a5b0b73f1298bf4eac1b9a02d57d505d349c9cd71f43c99f5314d8bf8`.
 The Dockerfile pins ProtiCelli source commit `f894e78d2fbc0530c3637d5f7c457ead0738a5d0`,
 BLAST+ 2.17.0 with a tarball checksum, and a Python 3.12 base image digest. Its
-[runtime constraints](../challenges/hpa/examples/proticelli/model-runtime.constraints.txt) were read from the published image;
+[runtime constraints](../examples/proticelli/model-runtime.constraints.txt) were read from the published image;
 they pin PyTorch, torchvision, and the model's Python dependency stack for rebuilds. The
 recorded run retains its original image digest. The current image adds PNG,
 mask, and multi-sequence FASTA support. When building
@@ -110,7 +110,7 @@ local image before publishing a replacement digest:
 
 ```bash
 docker build --platform linux/amd64 -t proticelli-rebuild-check \
-  challenges/hpa/examples/proticelli
+  examples/proticelli
 docker run --rm --platform linux/amd64 --entrypoint python3 \
   proticelli-rebuild-check /opt/proticelli/predict.py --help
 ```

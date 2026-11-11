@@ -40,7 +40,7 @@ class ParticipantImportBoundaryTests(unittest.TestCase):
         script = """
 import sys
 from anvil_dream_participant.integrations.synapse import ParticipantSynapseGateway
-from anvil_dream_participant.challenges.hpa.profile import PROFILE
+from anvil_dream_participant.profile import PROFILE
 from anvil_dream_participant.integrations.terra import ParticipantTerraClient
 from anvil_dream_participant.progress import ProgressReporter
 from anvil_dream_participant.submissions.bundle import SubmissionBundle, SubmissionBundleManifest
@@ -160,54 +160,11 @@ class PublicArtifactBoundaryTests(unittest.TestCase):
 
     def test_fake_architecture_violations_are_rejected(self) -> None:
         violations = (
-            (
-                "anvil_dream_participant/config.py",
-                b"from .cli.root import cli\n",
-                "core module",
-            ),
-            (
-                "anvil_dream_participant/cli/root.py",
-                b"from ..challenges.hpa.profile import PROFILE\n",
-                "CLI module",
-            ),
-            (
-                "anvil_dream_participant/challenges/hpa/profile.py",
-                b"import click\n",
-                "challenge module",
-            ),
-            (
-                "anvil_dream_participant/challenges/hpa/profile.py",
-                b"def main():\n    pass\n",
-                "command entrypoint",
-            ),
-        )
-        violations += (
-            (
-                "anvil_dream_participant/config.py",
-                b"import anvil_dream_participant.challenges.hpa.profile\n",
-                "core module",
-            ),
-            (
-                "anvil_dream_participant/submissions/operations.py",
-                b"from ..cli.root import cli\n",
-                "core module",
-            ),
-            (
-                "anvil_dream_participant/submissions/operations.py",
-                b"from .. import cli\n",
-                "core module",
-            ),
-            (
-                "anvil_dream_participant/cli/root.py",
-                b"from ..challenges import hpa\n",
-                "CLI module",
-            ),
-            (
-                "anvil_dream_participant/challenges/hpa/profile.py",
-                b"from ...cli import root\n",
-                "challenge module",
-            ),
+            ("anvil_dream_participant/config.py", b"from .cli.root import cli\n", "core module"),
             ("anvil_dream_participant/config.py", b"import click\n", "core module"),
+            ("anvil_dream_participant/workflows/wdl.py", b"from ..examples.proticelli import predict\n", "core module"),
+            ("anvil_dream_participant/cli/root.py", b"from ..examples.proticelli import predict\n", "CLI module"),
+            ("anvil_dream_participant/submissions/operations.py", b"from .. import cli\n", "core module"),
         )
         for name, source, message in violations:
             with self.subTest(name=name, source=source):
@@ -215,39 +172,11 @@ class PublicArtifactBoundaryTests(unittest.TestCase):
                     _assert_architecture_boundaries([(name, source)])
 
     def test_expected_package_dependencies_remain_valid(self) -> None:
-        _assert_architecture_boundaries(
-            [
-                ("anvil_dream_participant/config.py", b"from .challenge import ChallengeProfile\n"),
-                (
-                    "anvil_dream_participant/cli/root.py",
-                    b"from ..challenge import load_challenge\n",
-                ),
-                (
-                    "anvil_dream_participant/challenges/hpa/profile.py",
-                    b"from .workflows import parse_participant_workflow\n",
-                ),
-            ]
-        )
-
-    def test_legacy_validator_exception_is_limited_to_its_public_entrypoint(self) -> None:
-        parser_import = b"from ..challenges.hpa.workflows import parse_participant_workflow\n"
-        _assert_architecture_boundaries(
-            [("anvil_dream_participant/workflows/wdl.py", parser_import)]
-        )
-        for name, source in (
-            ("anvil_dream_participant/workflows/other.py", parser_import),
-            (
-                "anvil_dream_participant/workflows/wdl.py",
-                b"from ..challenges.hpa.workflows import unrelated_helper\n",
-            ),
-            (
-                "anvil_dream_participant/workflows/wdl.py",
-                b"from ..challenges.hpa.profile import PROFILE\n",
-            ),
-        ):
-            with self.subTest(name=name, source=source):
-                with self.assertRaisesRegex(AssertionError, "core module"):
-                    _assert_architecture_boundaries([(name, source)])
+        _assert_architecture_boundaries([
+            ("anvil_dream_participant/config.py", b"from .challenge import ChallengeProfile\n"),
+            ("anvil_dream_participant/cli/root.py", b"from ..challenge import load_challenge\n"),
+            ("anvil_dream_participant/profile.py", b"from .workflows.wdl import parse_participant_workflow\n"),
+        ])
 
     def test_project_and_wheel_metadata_reject_direct_organizer_dependencies(self) -> None:
         dependencies = (

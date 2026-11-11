@@ -33,7 +33,7 @@ PARTICIPANT_GUIDES = frozenset(
         "docs/reading-list.md",
         "docs/results.md",
         "docs/participant-releases.md",
-        "challenges/hpa/examples/proticelli/README.md",
+        "examples/proticelli/README.md",
     }
 )
 SDIST_GUIDES = PARTICIPANT_GUIDES | {"README.md"}
@@ -62,7 +62,7 @@ FORBIDDEN_DISTRIBUTIONS = frozenset(
 )
 CORE_PACKAGE_PREFIX = "anvil_dream_participant/"
 CLI_PACKAGE_PREFIX = "anvil_dream_participant/cli/"
-CHALLENGE_PACKAGE_PREFIX = "anvil_dream_participant/challenges/"
+EXAMPLE_PACKAGE_PREFIX = "anvil_dream_participant/examples/"
 
 
 def _public_module(name: str, archive_kind: str) -> bool:
@@ -119,40 +119,23 @@ def _assert_architecture_boundaries(modules: list[tuple[str, bytes]]) -> None:
         cli_imports = {
             target for target in targets if _under(target, "anvil_dream_participant.cli")
         }
-        challenge_imports = {
-            target for target in targets if _under(target, "anvil_dream_participant.challenges")
+        example_imports = {
+            target for target in targets if _under(target, "anvil_dream_participant.examples")
         }
         framework_imports = {
             target for target in targets if _under(target, "click") or _under(target, "argparse")
         }
         if name.startswith(CORE_PACKAGE_PREFIX) and not name.startswith(
-            (CLI_PACKAGE_PREFIX, CHALLENGE_PACKAGE_PREFIX)
+            (CLI_PACKAGE_PREFIX, EXAMPLE_PACKAGE_PREFIX)
         ):
-            if name == "anvil_dream_participant/workflows/wdl.py":
-                # The published validator entrypoint delegates lazily to HPA.
-                challenge_imports -= {
-                    "anvil_dream_participant.challenges.hpa.workflows",
-                    "anvil_dream_participant.challenges.hpa.workflows.parse_participant_workflow",
-                }
-            violations = cli_imports | challenge_imports | framework_imports
+            violations = cli_imports | example_imports | framework_imports
             assert not violations, (
-                f"core module {name} imports CLI or HPA code: {sorted(violations)}"
+                f"core module {name} imports CLI or example code: {sorted(violations)}"
             )
         if name.startswith(CLI_PACKAGE_PREFIX):
-            assert not challenge_imports, (
-                f"CLI module {name} imports HPA code directly: {sorted(challenge_imports)}"
+            assert not example_imports, (
+                f"CLI module {name} imports example code directly: {sorted(example_imports)}"
             )
-        if name.startswith(CHALLENGE_PACKAGE_PREFIX) and "/examples/" not in name:
-            violations = cli_imports | framework_imports
-            commands = [
-                node.name
-                for node in ast.walk(tree)
-                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == "main"
-            ]
-            assert not violations, (
-                f"challenge module {name} imports CLI framework code: {sorted(violations)}"
-            )
-            assert not commands, f"challenge module {name} defines a command entrypoint"
 
 
 def normalize_distribution_name(name: str) -> str:
@@ -219,7 +202,7 @@ def _sdist_path_is_public(name: str) -> bool:
             "scripts",
             "participant",
             "cli",
-            "challenges",
+            "examples",
             "docs",
             "tests",
         } or parts[0].endswith(".egg-info")
@@ -228,7 +211,7 @@ def _sdist_path_is_public(name: str) -> bool:
         return relative in PARTICIPANT_GUIDES or relative in SDIST_DOC_ASSETS
     if parts[0] == "scripts":
         return "/".join(parts) in SDIST_MAINTAINER_FILES
-    if parts[0] in {"participant", "cli", "challenges", "tests"}:
+    if parts[0] in {"participant", "cli", "examples", "tests"}:
         return True
     return parts[0].endswith(".egg-info")
 
@@ -257,15 +240,18 @@ def _assert_public_modules(modules: set[str], artifact: str) -> None:
         "anvil_dream_participant/cli/__init__.py",
         "anvil_dream_participant/cli/__main__.py",
         "anvil_dream_participant/cli/root.py",
+        "anvil_dream_participant/cli/participant.py",
+        "anvil_dream_participant/profile.py",
+        "anvil_dream_participant/examples/__init__.py",
+        "anvil_dream_participant/examples/proticelli/__init__.py",
         "anvil_dream_participant/cli/submit.py",
         "anvil_dream_participant/cli/submit_anvil.py",
         "anvil_dream_participant/cli/submission_status.py",
-        "anvil_dream_participant/challenges/__init__.py",
-        "anvil_dream_participant/challenges/hpa/__init__.py",
-        "anvil_dream_participant/challenges/hpa/profile.py",
-        "anvil_dream_participant/challenges/hpa/workflows.py",
     }
     _assert_required_modules(modules, required, artifact)
+    assert not any("challenges" in PurePosixPath(name).parts for name in modules), (
+        f"{artifact} includes the retired challenges package layout"
+    )
     assert not any("benchmarking" in PurePosixPath(name).parts for name in modules), (
         f"{artifact} includes retired evaluation modules"
     )
@@ -292,9 +278,9 @@ def verify_wheel(path: str) -> tuple[int, list[str]]:
         assert not any("tests" in PurePosixPath(name).parts for name in names), (
             "participant wheel includes development tests"
         )
-        assert "anvil_dream_participant/challenges/hpa/examples/proticelli/participant.wdl" in names
+        assert "anvil_dream_participant/examples/proticelli/participant.wdl" in names
         assert (
-            "anvil_dream_participant/challenges/hpa/examples/proticelli/scripts/build_weights.py"
+            "anvil_dream_participant/examples/proticelli/scripts/build_weights.py"
             in names
         )
         _assert_public_modules(module_set, "participant wheel")
@@ -378,7 +364,7 @@ def verify_sdist(path: str) -> tuple[int, list[str]]:
         assert 'anvil-dream-participant = "anvil_dream_participant.cli:main"' in source
         assert 'anvil_dream_participant = "participant"' in source
         assert '"anvil_dream_participant.cli" = "cli"' in source
-        assert '"anvil_dream_participant.challenges.hpa" = "challenges/hpa"' in source
+        assert '"anvil_dream_participant.examples" = "examples"' in source
     return len(names), modules
 
 
@@ -389,7 +375,7 @@ def _sdist_package_path(name: str) -> str | None:
     source_root, *relative = parts
     if source_root == "participant":
         package_root = "anvil_dream_participant"
-    elif source_root in {"cli", "challenges"}:
+    elif source_root in {"cli", "examples"}:
         package_root = f"anvil_dream_participant/{source_root}"
     else:
         return None

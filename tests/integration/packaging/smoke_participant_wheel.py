@@ -26,8 +26,8 @@ from anvil_dream_participant.submissions.bundle import (
     ARCHIVE_WEIGHTS,
     SubmissionBundle,
 )
-from anvil_dream_participant.challenges.hpa.workflows import parse_participant_workflow
-from anvil_dream_participant.challenges.hpa.profile import PROFILE
+from anvil_dream_participant.workflows.wdl import parse_participant_workflow
+from anvil_dream_participant.profile import PROFILE
 
 
 def main(wdl_path: Path) -> None:
@@ -61,7 +61,7 @@ def main(wdl_path: Path) -> None:
     }
     if entry_points != {"anvil-dream-participant": "anvil_dream_participant.cli:main"}:
         raise AssertionError(f"participant wheel exposes unexpected commands: {entry_points}")
-    if importlib.util.find_spec("anvil_dream_participant.challenges.hpa.benchmarking") is not None:
+    if importlib.util.find_spec("anvil_dream_participant.benchmarking") is not None:
         raise AssertionError("participant wheel includes retired evaluation code")
     loaded = sorted(name for name in sys.modules if is_forbidden_import(name))
     if loaded:
