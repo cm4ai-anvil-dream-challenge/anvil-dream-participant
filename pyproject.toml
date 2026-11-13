@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "anvil-dream-participant"
-version = "0.2.0"
+version = "0.2.1"
 description = "AnVIL DREAM participant CLI, submission tools, and benchmark"
 readme = "README.md"
 license = "Apache-2.0"
