@@ -114,7 +114,7 @@ Note that reference images use uint8 pixels. Apply the input normalization requi
 
 Prepare one weights file in the format your model expects. An archive is acceptable if your code can read or unpack it. The CLI does not convert model checkpoints.
 
-For model-specific starting points, including how the ProtiCelli weights bundle is assembled, see the [ProtiCelli example](proticelli.md) and [ProtiCelliDream](https://github.com/cm4ai-anvil-dream-challenge/ProtiCelliDream).
+For model-specific starting points, including how the ProtiCelli weights bundle is assembled, see the [ProtiCelli example](proticelli.md) and [blast-proticelli](https://github.com/cm4ai-anvil-dream-challenge/blast-proticelli).
 
 ### Wrap it in a WDL file
 
